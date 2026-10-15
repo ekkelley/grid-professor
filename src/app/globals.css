@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Grid Professor palette (from app.gridprof.com). Every text color here meets WCAG AA on its
+   background; no orange text on white anywhere. */
+:root {
+  --ink: #1c2620;
+  --muted: #4a5750;
+  --green: #2e6b3f;
+  --green-strong: #23532f;
+  --green-tint: #e7f0e9;
+  --line: #dce2dd;
+  --bg: #f6f7f5;
+  --card: #ffffff;
+  --note-bg: #fff7d6;
+  --note-ink: #4a3b00;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-green: var(--green);
+  --color-green-strong: var(--green-strong);
+  --color-green-tint: var(--green-tint);
+  --color-line: var(--line);
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-note-bg: var(--note-bg);
+  --color-note-ink: var(--note-ink);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Readings come in as Markdown. */
+.prose-reading h2 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+.prose-reading h2:first-child { margin-top: 0; }
+.prose-reading p { margin: 0 0 0.875rem; line-height: 1.7; }
+.prose-reading ul, .prose-reading ol { margin: 0 0 0.875rem 1.25rem; list-style: disc; }
+.prose-reading code { font-family: var(--font-mono); font-size: 0.9em; background: var(--green-tint); padding: 0.1em 0.3em; border-radius: 4px; }

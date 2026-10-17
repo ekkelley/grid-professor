@@ -3,28 +3,12 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { attachWorkbookFile, importWorkbookGuide } from "@/app/actions";
 import type { Item, WorkbookContext } from "@/lib/data";
-import { formatDuration } from "@/lib/data";
 import { Badge, Card } from "@/components/ui";
+import { VideoPlayer } from "@/components/video-player";
 
-function VideoItem({ item }: { item: Item }) {
+function VideoItem({ item, tracked, progress }: { item: Item; tracked: boolean; progress?: number | null }) {
   if (!item.stored_at) return null;
-  return (
-    <figure>
-      <div className="aspect-video overflow-hidden rounded-xl border border-line bg-ink">
-        <iframe
-          src={item.stored_at}
-          title={`Video: ${item.title}`}
-          className="size-full"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-        />
-      </div>
-      {item.duration_seconds && (
-        <figcaption className="mt-2 text-sm text-muted">Video, {formatDuration(item.duration_seconds)}</figcaption>
-      )}
-    </figure>
-  );
+  return <VideoPlayer itemId={item.id} src={item.stored_at} title={item.title} tracked={tracked} initialPercent={progress ?? null} />;
 }
 
 function ReadItem({ item, heading }: { item: Item; heading: string }) {
@@ -187,6 +171,8 @@ export function SlotView({
   guides,
   courseSlug,
   admin,
+  tracked,
+  progress,
 }: {
   items: Item[];
   workbooks?: WorkbookContext;
@@ -194,13 +180,17 @@ export function SlotView({
   guides?: Map<string, DerivedGuide[]>;
   courseSlug?: string;
   admin?: boolean;
+  /** Signed in: video watching is recorded. */
+  tracked?: boolean;
+  /** The viewer's watched percent per video item id. */
+  progress?: Map<string, { percent: number }>;
 }) {
   return (
     <div className="space-y-4">
       {items.map((item) => {
         switch (item.kind) {
           case "video":
-            return <VideoItem key={item.id} item={item} />;
+            return <VideoItem key={item.id} item={item} tracked={!!tracked} progress={progress?.get(item.id)?.percent} />;
           case "read":
             return <ReadItem key={item.id} item={item} heading={items.length > 1 ? "Prefer to read? Same material, in text" : "Reading"} />;
           case "guide":

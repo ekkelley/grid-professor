@@ -223,6 +223,34 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"profiles": {
+                  Row: {
+                    "created_at": string,"email": string,"role": Database["public"]['Enums']["user_role"],"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"email": string,"role"?: Database["public"]['Enums']["user_role"],"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"email"?: string,"role"?: Database["public"]['Enums']["user_role"],"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"role_grants": {
+                  Row: {
+                    "email": string,"note": string | null,"role": Database["public"]['Enums']["user_role"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "email": string,"note"?: string | null,"role": Database["public"]['Enums']["user_role"]
+                  }
+                  Update: {
+                    "email"?: string,"note"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"skills": {
                   Row: {
                     "id": string,"name": string,"slug": string,"type": Database["public"]['Enums']["skill_type"]
@@ -276,6 +304,46 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"video_progress": {
+                  Row: {
+                    "best_session_percent": number,"duration_seconds": number,"first_watched_at": string,"intervals": NonNullable<Json>,"item_id": string,"last_watched_at": string,"percent": number,"user_id": string,"watched_seconds": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "best_session_percent": number,"duration_seconds": number,"first_watched_at"?: string,"intervals": NonNullable<Json>,"item_id": string,"last_watched_at"?: string,"percent": number,"user_id": string,"watched_seconds": number
+                  }
+                  Update: {
+                    "best_session_percent"?: number,"duration_seconds"?: number,"first_watched_at"?: string,"intervals"?: NonNullable<Json>,"item_id"?: string,"last_watched_at"?: string,"percent"?: number,"user_id"?: string,"watched_seconds"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "video_progress_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "items"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"video_watch_events": {
+                  Row: {
+                    "duration_seconds": number,"id": string,"intervals": NonNullable<Json>,"item_id": string,"recorded_at": string,"session_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "duration_seconds": number,"id"?: string,"intervals": NonNullable<Json>,"item_id": string,"recorded_at"?: string,"session_id": string,"user_id": string
+                  }
+                  Update: {
+                    "duration_seconds"?: number,"id"?: string,"intervals"?: NonNullable<Json>,"item_id"?: string,"recorded_at"?: string,"session_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "video_watch_events_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "items"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"workbook_builds": {
                   Row: {
@@ -337,7 +405,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed"
+            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -453,7 +521,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"]
+            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
           }
         }
 } as const

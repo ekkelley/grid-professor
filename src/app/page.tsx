@@ -19,7 +19,7 @@ async function HomeContent() {
         </h1>
         {sections.length === 0 ? (
           <p className="mt-3 text-muted">
-            No courses yet. {editor ? "Start one from a template below." : "Switch to instructor to start one from a template."}
+            No courses yet. {editor ? "Start one from a template below." : "Instructors start one from a template."}
           </p>
         ) : (
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">

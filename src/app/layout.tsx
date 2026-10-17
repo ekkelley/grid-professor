@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { setRole } from "@/app/actions";
-import { ROLES, getRole } from "@/lib/role";
+import { setPreview, signOut } from "@/app/auth/actions";
+import { getViewer } from "@/lib/role";
 import { Wordmark } from "@/components/ui";
 import "./globals.css";
 
@@ -12,24 +13,49 @@ export const metadata: Metadata = {
   description: "Excel teaching, learning and grading.",
 };
 
-async function RoleSwitcher() {
-  const role = await getRole();
+async function Account() {
+  const viewer = await getViewer();
+  if (!viewer.user) {
+    return (
+      <Link href="/sign-in" className="rounded-lg border border-line bg-card px-3 py-1.5 text-sm font-medium hover:bg-bg">
+        Sign in
+      </Link>
+    );
+  }
   return (
-    <form action={setRole} className="flex items-center gap-1 rounded-lg border border-line bg-card p-1 text-sm">
-      <span className="px-2 text-muted">Viewing as</span>
-      {ROLES.map((r) => (
-        <button
-          key={r}
-          type="submit"
-          name="role"
-          value={r}
-          aria-pressed={r === role}
-          className={`rounded-md px-2.5 py-1 capitalize ${r === role ? "bg-green text-white" : "text-ink hover:bg-bg"}`}
-        >
-          {r}
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      {viewer.actualRole !== "student" && (
+        <form action={setPreview} className="flex items-center gap-1 rounded-lg border border-line bg-card p-1">
+          <span className="px-1.5 text-muted">View as</span>
+          <button
+            type="submit"
+            name="preview"
+            value="self"
+            aria-pressed={!viewer.previewing}
+            className={`rounded-md px-2 py-0.5 capitalize ${!viewer.previewing ? "bg-green text-white" : "hover:bg-bg"}`}
+          >
+            {viewer.actualRole}
+          </button>
+          <button
+            type="submit"
+            name="preview"
+            value="student"
+            aria-pressed={viewer.previewing}
+            className={`rounded-md px-2 py-0.5 ${viewer.previewing ? "bg-green text-white" : "hover:bg-bg"}`}
+          >
+            Student
+          </button>
+        </form>
+      )}
+      <span className="max-w-48 truncate text-muted" title={viewer.user.email}>
+        {viewer.user.email}
+      </span>
+      <form action={signOut}>
+        <button type="submit" className="rounded-lg border border-line bg-card px-3 py-1.5 font-medium hover:bg-bg">
+          Sign out
         </button>
-      ))}
-    </form>
+      </form>
+    </div>
   );
 }
 
@@ -44,16 +70,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <Wordmark />
             <Suspense fallback={<span className="h-9" />}>
-              <RoleSwitcher />
+              <Account />
             </Suspense>
           </div>
         </header>
         <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
           {children}
         </main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">
-          Prototype. Sign-in is a role switcher and workbooks open by link until the add-in API exists.
-        </footer>
+        <footer className="border-t border-line py-4 text-center text-xs text-muted">Prototype. Workbooks are graded by the Grid Professor add-in inside Excel.</footer>
       </body>
     </html>
   );

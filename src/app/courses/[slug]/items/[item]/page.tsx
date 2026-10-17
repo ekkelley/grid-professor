@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCourse, getDerivedGuides, getDerivedItems, getItemById, getLibrary, getTags, getWorkbookContext } from "@/lib/data";
-import { getRole } from "@/lib/role";
+import { getCourse, getDerivedGuides, getDerivedItems, getItemById, getLibrary, getMyVideoProgress, getTags, getWorkbookContext } from "@/lib/data";
+import { getViewer } from "@/lib/role";
 import { TagList } from "@/components/ui";
 import { SlotView } from "@/components/item-view";
 
@@ -12,7 +12,8 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
   if (!course) notFound();
   // Only items this course offers in its library, or items derived from one (a sprint's solution
   // guide), can be opened here.
-  const [library, role] = await Promise.all([getLibrary(course.id), getRole()]);
+  const [library, viewer] = await Promise.all([getLibrary(course.id), getViewer()]);
+  const role = viewer.role;
   const libraryIds = library.map((r) => r.items?.id).filter((id): id is string => !!id);
   const entry = library.find((r) => r.items?.slug === itemSlug);
   let item = entry?.items ? await getItemById(entry.items.id) : null;
@@ -22,11 +23,12 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
     item = match ? await getItemById(match.id) : null;
   }
   if (!item || (item.derived_from && !libraryIds.includes(item.derived_from) && !libraryIds.includes(item.id))) notFound();
-  const [derived, tags, workbooks, guides] = await Promise.all([
+  const [derived, tags, workbooks, guides, progress] = await Promise.all([
     getDerivedItems(item.id),
     getTags([item.id]),
     getWorkbookContext([item.id]),
     getDerivedGuides([item.id]),
+    viewer.user && item.kind === "video" ? getMyVideoProgress([item.id]) : Promise.resolve(new Map()),
   ]);
 
   return (
@@ -46,6 +48,8 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
         guides={guides}
         courseSlug={course.slug}
         admin={role === "admin"}
+        tracked={!!viewer.user}
+        progress={progress}
       />
     </article>
   );

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatDate, getCourse, getCoursePath, getDerivedGuides, getModuleSlots, getTags, getWorkbookContext, today } from "@/lib/data";
-import { canEditCourses, getRole } from "@/lib/role";
+import { formatDate, getCourse, getCoursePath, getDerivedGuides, getModuleSlots, getMyVideoProgress, getTags, getWorkbookContext, today } from "@/lib/data";
+import { canEditCourses, getViewer } from "@/lib/role";
 import { Note, TagList } from "@/components/ui";
 import { SlotView, WorkbookPending } from "@/components/item-view";
 
@@ -10,7 +10,8 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
   const { slug, module: moduleSlug } = await params;
   const course = await getCourse(slug);
   if (!course) notFound();
-  const [units, role] = await Promise.all([getCoursePath(course.id), getRole()]);
+  const [units, viewer] = await Promise.all([getCoursePath(course.id), getViewer()]);
+  const role = viewer.role;
   const editor = canEditCourses(role);
 
   // The path as this viewer sees it, flattened, so previous and next follow the course order.
@@ -27,7 +28,12 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
   const tags = await getTags(slots.flat().filter((i) => i.kind !== "read").map((i) => i.id));
   const workbookIds = slots.flat().filter((i) => i.kind === "workbook").map((i) => i.id);
   const hasWorkbook = workbookIds.length > 0;
-  const [workbooks, guides] = await Promise.all([getWorkbookContext(workbookIds), getDerivedGuides(workbookIds)]);
+  const videoIds = slots.flat().filter((i) => i.kind === "video").map((i) => i.id);
+  const [workbooks, guides, progress] = await Promise.all([
+    getWorkbookContext(workbookIds),
+    getDerivedGuides(workbookIds),
+    viewer.user ? getMyVideoProgress(videoIds) : Promise.resolve(new Map()),
+  ]);
   const prev = visible[index - 1];
   const next = visible[index + 1];
 
@@ -45,7 +51,16 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
       </header>
 
       {slots.map((items, i) => (
-        <SlotView key={i} items={items} workbooks={workbooks} guides={guides} courseSlug={course.slug} admin={role === "admin"} />
+        <SlotView
+          key={i}
+          items={items}
+          workbooks={workbooks}
+          guides={guides}
+          courseSlug={course.slug}
+          admin={role === "admin"}
+          tracked={!!viewer.user}
+          progress={progress}
+        />
       ))}
       {!hasWorkbook && <WorkbookPending />}
 

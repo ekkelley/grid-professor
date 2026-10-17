@@ -1,18 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ROLES, ROLE_COOKIE, requireAdmin, requireEditor, type Role } from "@/lib/role";
+import { requireAdmin, requireEditor } from "@/lib/role";
 import { importGuideFromUrl } from "@/lib/guide-import";
-
-export async function setRole(formData: FormData) {
-  const role = formData.get("role");
-  if (!ROLES.includes(role as Role)) throw new Error("Unknown role");
-  (await cookies()).set(ROLE_COOKIE, role as string, { path: "/", sameSite: "lax", httpOnly: true, maxAge: 60 * 60 * 24 * 30 });
-  revalidatePath("/", "layout");
-}
 
 export async function createSection(formData: FormData) {
   await requireEditor();

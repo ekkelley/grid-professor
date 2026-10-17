@@ -180,6 +180,26 @@ export async function getLibrary(courseId: string) {
   return rows.filter((r) => r.items).sort((a, b) => a.position - b.position);
 }
 
+export type VideoProgress = { itemId: string; percent: number; bestSessionPercent: number; lastWatchedAt: string };
+
+/** The signed-in viewer's own video progress (row-level security limits reads to their rows). */
+export async function getMyVideoProgress(itemIds?: string[]): Promise<Map<string, VideoProgress>> {
+  const supabase = await createClient();
+  let query = supabase.from("video_progress").select("item_id, percent, best_session_percent, last_watched_at");
+  if (itemIds) {
+    if (itemIds.length === 0) return new Map();
+    query = query.in("item_id", itemIds);
+  }
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return new Map(
+    (data ?? []).map((r) => [
+      r.item_id,
+      { itemId: r.item_id, percent: Number(r.percent), bestSessionPercent: Number(r.best_session_percent), lastWatchedAt: r.last_watched_at },
+    ]),
+  );
+}
+
 /** Today's date in US Eastern time, as YYYY-MM-DD, for comparing against open dates. */
 export function today(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());

@@ -1,31 +1,62 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/database.types";
 
-/**
- * Prototype stand-in for sign-in. The viewer picks a role and it is kept in a cookie.
- * Replaced by real identity (SPEC section 10) before any student uses this.
- */
-export const ROLES = ["student", "instructor", "admin"] as const;
-export type Role = (typeof ROLES)[number];
-export const ROLE_COOKIE = "gp_role";
+export type Role = Database["public"]["Enums"]["user_role"];
+export const ROLES: readonly Role[] = ["student", "instructor", "admin"];
+
+/** Set by an instructor or admin to see the site as a student would. */
+export const PREVIEW_COOKIE = "gp_preview";
+
+export type Viewer = {
+  user: { id: string; email: string } | null;
+  /** The role the site acts on. Student when signed out, or when an editor is previewing. */
+  role: Role;
+  /** The role the signed-in person actually holds. */
+  actualRole: Role;
+  previewing: boolean;
+};
+
+export async function getViewer(): Promise<Viewer> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return { user: null, role: "student", actualRole: "student", previewing: false };
+
+  const { data: profile } = await supabase.from("profiles").select("role, email").eq("user_id", claims.sub).maybeSingle();
+  const actualRole: Role = profile?.role ?? "student";
+  const previewing = actualRole !== "student" && (await cookies()).get(PREVIEW_COOKIE)?.value === "student";
+  return {
+    user: { id: claims.sub, email: profile?.email ?? (typeof claims.email === "string" ? claims.email : "") },
+    role: previewing ? "student" : actualRole,
+    actualRole,
+    previewing,
+  };
+}
 
 export async function getRole(): Promise<Role> {
-  const value = (await cookies()).get(ROLE_COOKIE)?.value;
-  return ROLES.includes(value as Role) ? (value as Role) : "student";
+  return (await getViewer()).role;
 }
 
 export function canEditCourses(role: Role): boolean {
   return role === "instructor" || role === "admin";
 }
 
-export async function requireEditor(): Promise<Role> {
-  const role = await getRole();
-  if (!canEditCourses(role)) throw new Error("Only instructors and admins can change a course.");
-  return role;
+export async function requireEditor(): Promise<Viewer> {
+  const viewer = await getViewer();
+  if (!canEditCourses(viewer.role)) throw new Error("Only instructors and admins can change a course.");
+  return viewer;
 }
 
-export async function requireAdmin(): Promise<Role> {
-  const role = await getRole();
-  if (role !== "admin") throw new Error("Only admins can change content.");
-  return role;
+export async function requireAdmin(): Promise<Viewer> {
+  const viewer = await getViewer();
+  if (viewer.role !== "admin") throw new Error("Only admins can change content.");
+  return viewer;
+}
+
+export async function requireUser(): Promise<Viewer & { user: NonNullable<Viewer["user"]> }> {
+  const viewer = await getViewer();
+  if (!viewer.user) throw new Error("Sign in first.");
+  return viewer as Viewer & { user: NonNullable<Viewer["user"]> };
 }

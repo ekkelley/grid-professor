@@ -11,6 +11,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
+    "@vimeo/player": "^2.30.4",
     "geist": "^1.7.2",
     "next": "16.4.2",
     "react": "19.3.0",

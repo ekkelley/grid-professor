@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ROLES, ROLE_COOKIE, requireEditor, type Role } from "@/lib/role";
+import { ROLES, ROLE_COOKIE, requireAdmin, requireEditor, type Role } from "@/lib/role";
+import { importGuideFromUrl } from "@/lib/guide-import";
 
 export async function setRole(formData: FormData) {
   const role = formData.get("role");
@@ -68,4 +69,87 @@ export async function setOpensOn(formData: FormData) {
   const { error } = await createAdminClient().from("course_modules").update({ opens_on: raw || null }).eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath(`/courses/${slug}`, "layout");
+}
+
+// ---------------------------------------------------------------------------------------------
+// Content administration. Admin only; these write to the content system itself.
+// ---------------------------------------------------------------------------------------------
+
+/** Attach the student-version file to a workbook build. Served afterwards by /files/[build]. */
+export async function attachWorkbookFile(formData: FormData) {
+  await requireAdmin();
+  const buildId = String(formData.get("build") ?? "");
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) throw new Error("Choose a file first.");
+  if (!/\.(xlsx|xlsm)$/i.test(file.name)) throw new Error("Workbook files are .xlsx or .xlsm.");
+
+  const admin = createAdminClient();
+  const { data: build, error } = await admin.from("workbook_builds").select("id, items(slug)").eq("id", buildId).single();
+  if (error) throw new Error(error.message);
+
+  const safeName = file.name.replace(/[^A-Za-z0-9._ -]/g, "_");
+  const path = `builds/${build.id}/${safeName}`;
+  const { error: uploadError } = await admin.storage
+    .from("workbooks")
+    .upload(path, file, { upsert: true, contentType: file.type || "application/octet-stream" });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { error: updateError } = await admin
+    .from("workbook_builds")
+    .update({ file_path: path, file_name: safeName, file_attached_at: new Date().toISOString() })
+    .eq("id", build.id);
+  if (updateError) throw new Error(updateError.message);
+  revalidatePath("/", "layout");
+}
+
+/**
+ * Import a guide published on app.gridprof.com into the content system, as a guide item derived
+ * from the workbook it explains. Re-importing the same workbook's guide updates it in place.
+ */
+export async function importWorkbookGuide(formData: FormData) {
+  await requireAdmin();
+  const workbookId = String(formData.get("workbook") ?? "");
+  const url = String(formData.get("url") ?? "").trim();
+  const admin = createAdminClient();
+
+  const { data: workbook, error } = await admin
+    .from("items")
+    .select("id, slug, owner_id, item_skills(skill_id)")
+    .eq("id", workbookId)
+    .eq("kind", "workbook")
+    .single();
+  if (error) throw new Error(error.message);
+
+  const guide = await importGuideFromUrl(url);
+  const slug = `${workbook.slug}--guide`;
+  const { data: item, error: upsertError } = await admin
+    .from("items")
+    .upsert(
+      {
+        slug,
+        kind: "guide",
+        title: guide.title,
+        summary: `Level-by-level solution guide for ${workbook.slug}, from the Grid Professor add-in.`,
+        owner_id: workbook.owner_id,
+        stored_at: url,
+        body_md: guide.markdown,
+        origin: "derived",
+        derived_from: workbook.id,
+        source: `gridprof skill guide generator; imported ${new Date().toISOString().slice(0, 10)} from ${url}`,
+      },
+      { onConflict: "kind,slug" },
+    )
+    .select("id")
+    .single();
+  if (upsertError) throw new Error(upsertError.message);
+
+  // The guide teaches what the workbook declares.
+  await admin.from("item_skills").delete().eq("item_id", item.id);
+  if (workbook.item_skills.length > 0) {
+    const { error: tagError } = await admin
+      .from("item_skills")
+      .insert(workbook.item_skills.map((s) => ({ item_id: item.id, skill_id: s.skill_id, basis: "declared" as const })));
+    if (tagError) throw new Error(tagError.message);
+  }
+  revalidatePath("/", "layout");
 }

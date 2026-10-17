@@ -23,3 +23,9 @@ export async function requireEditor(): Promise<Role> {
   if (!canEditCourses(role)) throw new Error("Only instructors and admins can change a course.");
   return role;
 }
+
+export async function requireAdmin(): Promise<Role> {
+  const role = await getRole();
+  if (role !== "admin") throw new Error("Only admins can change content.");
+  return role;
+}

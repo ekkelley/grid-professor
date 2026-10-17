@@ -279,14 +279,14 @@ isOneToOne: false
                   ]
                 },"workbook_builds": {
                   Row: {
-                    "addin_ref": string,"created_at": string,"id": string,"item_id": string,"open_url": string | null,"status": Database["public"]['Enums']["build_status"],"variant": Database["public"]['Enums']["build_variant"]
+                    "addin_ref": string,"created_at": string,"file_attached_at": string | null,"file_name": string | null,"file_path": string | null,"id": string,"item_id": string,"open_url": string | null,"status": Database["public"]['Enums']["build_status"],"variant": Database["public"]['Enums']["build_variant"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "addin_ref": string,"created_at"?: string,"id"?: string,"item_id": string,"open_url"?: string | null,"status"?: Database["public"]['Enums']["build_status"],"variant": Database["public"]['Enums']["build_variant"]
+                    "addin_ref": string,"created_at"?: string,"file_attached_at"?: string | null,"file_name"?: string | null,"file_path"?: string | null,"id"?: string,"item_id": string,"open_url"?: string | null,"status"?: Database["public"]['Enums']["build_status"],"variant": Database["public"]['Enums']["build_variant"]
                   }
                   Update: {
-                    "addin_ref"?: string,"created_at"?: string,"id"?: string,"item_id"?: string,"open_url"?: string | null,"status"?: Database["public"]['Enums']["build_status"],"variant"?: Database["public"]['Enums']["build_variant"]
+                    "addin_ref"?: string,"created_at"?: string,"file_attached_at"?: string | null,"file_name"?: string | null,"file_path"?: string | null,"id"?: string,"item_id"?: string,"open_url"?: string | null,"status"?: Database["public"]['Enums']["build_status"],"variant"?: Database["public"]['Enums']["build_variant"]
                   }
                   Relationships: [
                     {

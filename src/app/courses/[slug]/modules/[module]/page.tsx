@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatDate, getCourse, getCoursePath, getModuleSlots, getTags, getWorkbookContext, today } from "@/lib/data";
+import { formatDate, getCourse, getCoursePath, getDerivedGuides, getModuleSlots, getTags, getWorkbookContext, today } from "@/lib/data";
 import { canEditCourses, getRole } from "@/lib/role";
 import { Note, TagList } from "@/components/ui";
 import { SlotView, WorkbookPending } from "@/components/item-view";
@@ -27,7 +27,7 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
   const tags = await getTags(slots.flat().filter((i) => i.kind !== "read").map((i) => i.id));
   const workbookIds = slots.flat().filter((i) => i.kind === "workbook").map((i) => i.id);
   const hasWorkbook = workbookIds.length > 0;
-  const workbooks = await getWorkbookContext(workbookIds);
+  const [workbooks, guides] = await Promise.all([getWorkbookContext(workbookIds), getDerivedGuides(workbookIds)]);
   const prev = visible[index - 1];
   const next = visible[index + 1];
 
@@ -45,7 +45,7 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
       </header>
 
       {slots.map((items, i) => (
-        <SlotView key={i} items={items} workbooks={workbooks} />
+        <SlotView key={i} items={items} workbooks={workbooks} guides={guides} courseSlug={course.slug} admin={role === "admin"} />
       ))}
       {!hasWorkbook && <WorkbookPending />}
 

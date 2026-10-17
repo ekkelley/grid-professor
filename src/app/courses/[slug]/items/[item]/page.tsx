@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCourse, getDerivedItems, getItemById, getLibrary, getTags, getWorkbookContext } from "@/lib/data";
+import { getCourse, getDerivedGuides, getDerivedItems, getItemById, getLibrary, getTags, getWorkbookContext } from "@/lib/data";
+import { getRole } from "@/lib/role";
 import { TagList } from "@/components/ui";
 import { SlotView } from "@/components/item-view";
 
@@ -9,11 +10,24 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
   const { slug, item: itemSlug } = await params;
   const course = await getCourse(slug);
   if (!course) notFound();
-  // Only items this course offers in its library can be opened here.
-  const entry = (await getLibrary(course.id)).find((r) => r.items?.slug === itemSlug);
-  const item = entry?.items ? await getItemById(entry.items.id) : null;
-  if (!item) notFound();
-  const [derived, tags, workbooks] = await Promise.all([getDerivedItems(item.id), getTags([item.id]), getWorkbookContext([item.id])]);
+  // Only items this course offers in its library, or items derived from one (a sprint's solution
+  // guide), can be opened here.
+  const [library, role] = await Promise.all([getLibrary(course.id), getRole()]);
+  const libraryIds = library.map((r) => r.items?.id).filter((id): id is string => !!id);
+  const entry = library.find((r) => r.items?.slug === itemSlug);
+  let item = entry?.items ? await getItemById(entry.items.id) : null;
+  if (!item) {
+    const candidates = await getDerivedGuides(libraryIds);
+    const match = [...candidates.values()].flat().find((g) => g.slug === itemSlug);
+    item = match ? await getItemById(match.id) : null;
+  }
+  if (!item || (item.derived_from && !libraryIds.includes(item.derived_from) && !libraryIds.includes(item.id))) notFound();
+  const [derived, tags, workbooks, guides] = await Promise.all([
+    getDerivedItems(item.id),
+    getTags([item.id]),
+    getWorkbookContext([item.id]),
+    getDerivedGuides([item.id]),
+  ]);
 
   return (
     <article className="space-y-6">
@@ -26,7 +40,13 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
         <h2 className="text-xl font-semibold">{item.title}</h2>
         <TagList tags={tags} />
       </header>
-      <SlotView items={[item, ...derived.filter((d) => d.kind === "read")]} workbooks={workbooks} />
+      <SlotView
+        items={[item, ...derived.filter((d) => d.kind === "read")]}
+        workbooks={workbooks}
+        guides={guides}
+        courseSlug={course.slug}
+        admin={role === "admin"}
+      />
     </article>
   );
 }

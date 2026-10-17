@@ -135,6 +135,21 @@ export async function getWorkbookContext(itemIds: string[]): Promise<WorkbookCon
   return ctx;
 }
 
+/** Guides derived from these workbooks (a sprint's solution guide), keyed by workbook id. */
+export async function getDerivedGuides(workbookIds: string[]): Promise<Map<string, { id: string; slug: string; title: string }[]>> {
+  const map = new Map<string, { id: string; slug: string; title: string }[]>();
+  if (workbookIds.length === 0) return map;
+  const supabase = await createClient();
+  const rows = check(
+    await supabase.from("items").select("id, slug, title, derived_from").eq("kind", "guide").eq("status", "active").in("derived_from", workbookIds),
+  );
+  for (const r of rows) {
+    if (!r.derived_from) continue;
+    map.set(r.derived_from, [...(map.get(r.derived_from) ?? []), { id: r.id, slug: r.slug, title: r.title }]);
+  }
+  return map;
+}
+
 /** Items derived from this one, such as a video's reading. */
 export async function getDerivedItems(itemId: string): Promise<Item[]> {
   const supabase = await createClient();

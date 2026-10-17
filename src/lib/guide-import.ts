@@ -24,11 +24,12 @@ export async function importGuideFromUrl(rawUrl: string): Promise<ImportedGuide>
   const html = await response.text();
 
   const title = decodeEntities(/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? "").trim() || url.pathname;
-  const bodyHtml = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html)?.[1] ?? html;
+  // Pages may omit the body tags (valid HTML5), so fall back to the document minus its head.
+  const bodyHtml = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html)?.[1] ?? html.replace(/<head[^>]*>[\s\S]*?<\/head>/i, "");
 
   const turndown = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced", bulletListMarker: "-" });
   turndown.use(gfm);
-  turndown.remove(["script", "style", "nav", "noscript"]);
+  turndown.remove(["script", "style", "nav", "noscript", "title", "head"]);
   // The page's own H1 repeats the title we store on the item.
   turndown.addRule("drop-h1", { filter: "h1", replacement: () => "" });
   // Relative links (the PDF copy) must keep pointing at the source site.

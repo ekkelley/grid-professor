@@ -46,3 +46,12 @@ body {
 .prose-reading p { margin: 0 0 0.875rem; line-height: 1.7; }
 .prose-reading ul, .prose-reading ol { margin: 0 0 0.875rem 1.25rem; list-style: disc; }
 .prose-reading code { font-family: var(--font-mono); font-size: 0.9em; background: var(--green-tint); padding: 0.1em 0.3em; border-radius: 4px; }
+.prose-reading pre { margin: 0 0 0.875rem; padding: 0.75rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); overflow-x: auto; }
+.prose-reading pre code { background: none; padding: 0; font-size: 0.875rem; }
+.prose-reading blockquote { margin: 0 0 0.875rem; padding: 0.5rem 1rem; border-left: 3px solid var(--green); background: var(--green-tint); border-radius: 0 8px 8px 0; }
+.prose-reading blockquote p:last-child { margin-bottom: 0; }
+.prose-reading table { border-collapse: collapse; margin: 0 0 0.875rem; font-size: 0.9rem; }
+.prose-reading th, .prose-reading td { border: 1px solid var(--line); padding: 0.3rem 0.6rem; text-align: left; }
+.prose-reading th { background: var(--bg); font-weight: 600; }
+.prose-reading a { color: var(--green-strong); text-decoration: underline; text-underline-offset: 2px; }
+.prose-reading h3 { font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.4rem; }

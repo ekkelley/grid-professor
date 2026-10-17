@@ -151,14 +151,14 @@ isOneToOne: false
                   ]
                 },"items": {
                   Row: {
-                    "audience": Database["public"]['Enums']["item_audience"],"body_md": string | null,"created_at": string,"default_release": Database["public"]['Enums']["release_rule"],"derived_from": string | null,"duration_seconds": number | null,"id": string,"kind": Database["public"]['Enums']["item_kind"],"origin": Database["public"]['Enums']["item_origin"],"owner_id": string,"rights": NonNullable<Json>,"slug": string,"source": string,"status": Database["public"]['Enums']["item_status"],"stored_at": string | null,"summary": string | null,"title": string
+                    "audience": Database["public"]['Enums']["item_audience"],"body_md": string | null,"created_at": string,"default_release": Database["public"]['Enums']["release_rule"],"delivery_note": string | null,"derived_from": string | null,"duration_seconds": number | null,"id": string,"kind": Database["public"]['Enums']["item_kind"],"origin": Database["public"]['Enums']["item_origin"],"owner_id": string,"rights": NonNullable<Json>,"slug": string,"source": string,"status": Database["public"]['Enums']["item_status"],"stored_at": string | null,"summary": string | null,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "audience"?: Database["public"]['Enums']["item_audience"],"body_md"?: string | null,"created_at"?: string,"default_release"?: Database["public"]['Enums']["release_rule"],"derived_from"?: string | null,"duration_seconds"?: number | null,"id"?: string,"kind": Database["public"]['Enums']["item_kind"],"origin": Database["public"]['Enums']["item_origin"],"owner_id": string,"rights"?: NonNullable<Json>,"slug": string,"source": string,"status"?: Database["public"]['Enums']["item_status"],"stored_at"?: string | null,"summary"?: string | null,"title": string
+                    "audience"?: Database["public"]['Enums']["item_audience"],"body_md"?: string | null,"created_at"?: string,"default_release"?: Database["public"]['Enums']["release_rule"],"delivery_note"?: string | null,"derived_from"?: string | null,"duration_seconds"?: number | null,"id"?: string,"kind": Database["public"]['Enums']["item_kind"],"origin": Database["public"]['Enums']["item_origin"],"owner_id": string,"rights"?: NonNullable<Json>,"slug": string,"source": string,"status"?: Database["public"]['Enums']["item_status"],"stored_at"?: string | null,"summary"?: string | null,"title": string
                   }
                   Update: {
-                    "audience"?: Database["public"]['Enums']["item_audience"],"body_md"?: string | null,"created_at"?: string,"default_release"?: Database["public"]['Enums']["release_rule"],"derived_from"?: string | null,"duration_seconds"?: number | null,"id"?: string,"kind"?: Database["public"]['Enums']["item_kind"],"origin"?: Database["public"]['Enums']["item_origin"],"owner_id"?: string,"rights"?: NonNullable<Json>,"slug"?: string,"source"?: string,"status"?: Database["public"]['Enums']["item_status"],"stored_at"?: string | null,"summary"?: string | null,"title"?: string
+                    "audience"?: Database["public"]['Enums']["item_audience"],"body_md"?: string | null,"created_at"?: string,"default_release"?: Database["public"]['Enums']["release_rule"],"delivery_note"?: string | null,"derived_from"?: string | null,"duration_seconds"?: number | null,"id"?: string,"kind"?: Database["public"]['Enums']["item_kind"],"origin"?: Database["public"]['Enums']["item_origin"],"owner_id"?: string,"rights"?: NonNullable<Json>,"slug"?: string,"source"?: string,"status"?: Database["public"]['Enums']["item_status"],"stored_at"?: string | null,"summary"?: string | null,"title"?: string
                   }
                   Relationships: [
                     {
@@ -297,6 +297,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"workbook_members": {
+                  Row: {
+                    "member_id": string,"position": number,"sequence_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "member_id": string,"position": number,"sequence_id": string
+                  }
+                  Update: {
+                    "member_id"?: string,"position"?: number,"sequence_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "workbook_members_member_id_fkey"
+      columns: ["member_id"]
+isOneToOne: false
+      referencedRelation: "items"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "workbook_members_sequence_id_fkey"
+      columns: ["sequence_id"]
+isOneToOne: false
+      referencedRelation: "items"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -311,7 +337,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "build_status": "current"|"retired","build_variant": "training"|"competition","course_kind": "template"|"section","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed"
+            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -427,7 +453,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "build_status": ["current", "retired"],"build_variant": ["training", "competition"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"]
+            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"]
           }
         }
 } as const

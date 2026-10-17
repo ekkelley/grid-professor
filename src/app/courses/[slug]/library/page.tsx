@@ -6,9 +6,9 @@ import { Card } from "@/components/ui";
 
 const SECTIONS: { key: LibrarySection; title: string; blurb: string; empty: string }[] = [
   { key: "explainer", title: "Concept videos", blurb: "Short explainers you can return to any time.", empty: "None yet." },
-  { key: "function_guide", title: "Function guides", blurb: "Brief descriptions of the Excel functions this course uses.", empty: "Coming from the add-in's skill guides (PV, FV, PMT, RATE, NPER and more)." },
-  { key: "practice", title: "Practice files", blurb: "Workbooks that drill one skill on its own, like a PV-only file.", empty: "Coming from the add-in's sprints and warm-ups." },
-  { key: "game", title: "Games", blurb: "Esports cases of different lengths and difficulty. Games run in the add-in.", empty: "Coming from the add-in's case library." },
+  { key: "function_guide", title: "Function guides", blurb: "Brief descriptions of the Excel functions this course uses.", empty: "None yet." },
+  { key: "practice", title: "Practice files", blurb: "Short graded workbooks that drill one idea at a time.", empty: "None yet." },
+  { key: "game", title: "Games", blurb: "Timed runs and esports cases of different lengths. Games run in the add-in.", empty: "None yet." },
 ];
 
 async function LibraryContent({ params }: Pick<PageProps<"/courses/[slug]/library">, "params">) {
@@ -39,6 +39,7 @@ async function LibraryContent({ params }: Pick<PageProps<"/courses/[slug]/librar
                         <span className="font-medium">{item!.title}</span>
                         {item!.summary && <p className="mt-1 line-clamp-2 text-sm text-muted">{item!.summary}</p>}
                         {item!.duration_seconds && <p className="mt-2 text-xs text-muted">Video, {formatDuration(item!.duration_seconds)}</p>}
+                        {item!.delivery_note && <p className="mt-2 text-xs text-muted">{item!.delivery_note}</p>}
                       </Card>
                     </Link>
                   </li>

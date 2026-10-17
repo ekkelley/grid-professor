@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCourse, getDerivedItems, getItem, getLibrary, getTags } from "@/lib/data";
+import { getCourse, getDerivedItems, getItemById, getLibrary, getTags, getWorkbookContext } from "@/lib/data";
 import { TagList } from "@/components/ui";
 import { SlotView } from "@/components/item-view";
 
@@ -9,9 +9,11 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
   const { slug, item: itemSlug } = await params;
   const course = await getCourse(slug);
   if (!course) notFound();
-  const [library, item] = await Promise.all([getLibrary(course.id), getItem(itemSlug)]);
-  if (!item || !library.some((r) => r.items?.slug === itemSlug)) notFound();
-  const [derived, tags] = await Promise.all([getDerivedItems(item.id), getTags([item.id])]);
+  // Only items this course offers in its library can be opened here.
+  const entry = (await getLibrary(course.id)).find((r) => r.items?.slug === itemSlug);
+  const item = entry?.items ? await getItemById(entry.items.id) : null;
+  if (!item) notFound();
+  const [derived, tags, workbooks] = await Promise.all([getDerivedItems(item.id), getTags([item.id]), getWorkbookContext([item.id])]);
 
   return (
     <article className="space-y-6">
@@ -24,7 +26,7 @@ async function LibraryItemContent({ params }: Pick<PageProps<"/courses/[slug]/it
         <h2 className="text-xl font-semibold">{item.title}</h2>
         <TagList tags={tags} />
       </header>
-      <SlotView items={[item, ...derived.filter((d) => d.kind === "read")]} />
+      <SlotView items={[item, ...derived.filter((d) => d.kind === "read")]} workbooks={workbooks} />
     </article>
   );
 }

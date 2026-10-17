@@ -1,7 +1,7 @@
 import Markdown from "react-markdown";
-import type { Item } from "@/lib/data";
+import type { Item, WorkbookContext } from "@/lib/data";
 import { formatDuration } from "@/lib/data";
-import { Badge, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 
 function VideoItem({ item }: { item: Item }) {
   if (!item.stored_at) return null;
@@ -36,33 +36,88 @@ function ReadItem({ item, heading }: { item: Item; heading: string }) {
   );
 }
 
-function WorkbookItem({ item }: { item: Item }) {
+const ADDIN_HOME = "https://app.gridprof.com/student.html";
+
+function WorkbookItem({ item, workbooks }: { item: Item; workbooks?: WorkbookContext }) {
   const builds = item.workbook_builds.filter((b) => b.status === "current");
+  const members = workbooks?.members.get(item.id) ?? [];
+  const partOf = workbooks?.partOf.get(item.id);
+  const isSequence = members.length > 0;
+
   return (
     <Card className="p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Excel workbook</p>
           <h2 className="text-base font-semibold">{item.title}</h2>
-          <p className="text-sm text-muted">Excel workbook, graded live by the Grid Professor add-in</p>
+          {item.summary && <p className="mt-1 text-sm text-muted">{item.summary}</p>}
+          {item.delivery_note && <p className="mt-2 text-sm">{item.delivery_note}</p>}
         </div>
-        <div className="flex gap-2">
-          {builds.map((b) =>
-            b.open_url ? (
-              <a key={b.id} href={b.open_url} className="rounded-lg bg-green px-3.5 py-2 text-sm font-medium text-white hover:bg-green-strong">
-                Open {b.variant === "competition" ? "timed" : "practice"} version
-              </a>
-            ) : (
-              <Badge key={b.id}>{b.variant} build, link pending</Badge>
-            ),
-          )}
-        </div>
+        <a
+          href={ADDIN_HOME}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 rounded-lg bg-green px-3.5 py-2 text-sm font-medium text-white hover:bg-green-strong"
+        >
+          Open Grid Professor<span className="sr-only"> (opens in a new tab)</span>
+        </a>
       </div>
+
+      {partOf && (
+        <p className="mt-3 text-sm">
+          Graded in <span className="font-medium">{partOf.title}</span>, tab {partOf.position} of {partOf.of}.
+        </p>
+      )}
+
+      {isSequence && (
+        <ol className="mt-3 list-decimal space-y-0.5 pl-5 text-sm">
+          {members.map((m) => (
+            <li key={m.id}>{m.title}</li>
+          ))}
+        </ol>
+      )}
+
+      <details className="mt-4 text-sm">
+        <summary className="cursor-pointer font-medium text-green-strong">How to open it</summary>
+        <div className="mt-2 space-y-1.5 text-muted">
+          {isSequence || partOf ? (
+            <p>
+              In Excel, open a blank workbook, sign in to the Grid Professor add-in and choose Game Launcher. Pick this run and the
+              add-in serves the tabs one at a time.
+            </p>
+          ) : (
+            <p>Download it from your class page in Grid Professor, open it in Excel and sign in to the add-in. It grades as you work.</p>
+          )}
+          <p>You need to be enrolled in a Grid Professor class that includes it.</p>
+          <p className="text-xs">Add-in reference: {builds.map((b) => `${b.addin_ref}${b.variant === "single" ? "" : ` (${b.variant})`}`).join("; ")}</p>
+        </div>
+      </details>
+    </Card>
+  );
+}
+
+function GuideItem({ item }: { item: Item }) {
+  if (item.body_md) return <ReadItem item={item} heading={item.title} />;
+  if (!item.stored_at) return null;
+  return (
+    <Card className="p-5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted">Function guide</p>
+      <h2 className="text-base font-semibold">{item.title}</h2>
+      {item.summary && <p className="mt-1 text-sm text-muted">{item.summary}</p>}
+      <a
+        href={item.stored_at}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex rounded-lg border border-line px-3.5 py-2 text-sm font-medium hover:bg-bg"
+      >
+        Open the guide<span className="sr-only"> (opens in a new tab)</span>
+      </a>
     </Card>
   );
 }
 
 /** One slot: its items are substitutes, shown together (a video and the reading derived from it). */
-export function SlotView({ items }: { items: Item[] }) {
+export function SlotView({ items, workbooks }: { items: Item[]; workbooks?: WorkbookContext }) {
   return (
     <div className="space-y-4">
       {items.map((item) => {
@@ -72,9 +127,9 @@ export function SlotView({ items }: { items: Item[] }) {
           case "read":
             return <ReadItem key={item.id} item={item} heading={items.length > 1 ? "Prefer to read? Same material, in text" : "Reading"} />;
           case "guide":
-            return <ReadItem key={item.id} item={item} heading={item.title} />;
+            return <GuideItem key={item.id} item={item} />;
           case "workbook":
-            return <WorkbookItem key={item.id} item={item} />;
+            return <WorkbookItem key={item.id} item={item} workbooks={workbooks} />;
           default:
             return null;
         }
@@ -88,7 +143,7 @@ export function WorkbookPending() {
     <Card className="border-dashed p-5">
       <h2 className="text-base font-semibold">Excel workbook</h2>
       <p className="mt-1 text-sm text-muted">
-        The add-in version of this exercise is being built. Once it&apos;s linked, students open it from here and the add-in grades it live.
+        No graded workbook is linked to this module yet. When one is, students open it from here and the add-in grades it live.
       </p>
     </Card>
   );

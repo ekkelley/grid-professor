@@ -85,11 +85,54 @@ export async function getModuleSlots(moduleId: string): Promise<Item[][]> {
     );
 }
 
-export async function getItem(slug: string): Promise<Item | null> {
+/** Names are unique per kind, so an item is fetched by id, or by kind and slug. */
+export async function getItemById(id: string): Promise<Item | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("items").select("*, workbook_builds(*)").eq("slug", slug).maybeSingle();
+  const { data, error } = await supabase.from("items").select("*, workbook_builds(*)").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
   return data;
+}
+
+export type SequenceLink = { id: string; slug: string; title: string; position: number };
+export type WorkbookContext = {
+  /** For a sequence: its members in order. */
+  members: Map<string, SequenceLink[]>;
+  /** For a member: the sequence it is served in, and its position there. */
+  partOf: Map<string, SequenceLink & { of: number }>;
+};
+
+export async function getWorkbookContext(itemIds: string[]): Promise<WorkbookContext> {
+  const ctx: WorkbookContext = { members: new Map(), partOf: new Map() };
+  if (itemIds.length === 0) return ctx;
+  const supabase = await createClient();
+  const [asSequence, asMember] = await Promise.all([
+    supabase
+      .from("workbook_members")
+      .select("sequence_id, position, member:items!workbook_members_member_id_fkey(id, slug, title)")
+      .in("sequence_id", itemIds),
+    supabase
+      .from("workbook_members")
+      .select("member_id, position, sequence:items!workbook_members_sequence_id_fkey(id, slug, title)")
+      .in("member_id", itemIds),
+  ]);
+  for (const row of check(asSequence)) {
+    if (!row.member) continue;
+    const list = ctx.members.get(row.sequence_id) ?? [];
+    list.push({ ...row.member, position: row.position });
+    ctx.members.set(row.sequence_id, list.sort((a, b) => a.position - b.position));
+  }
+  const memberRows = check(asMember);
+  if (memberRows.length > 0) {
+    const counts = check(
+      await supabase.from("workbook_members").select("sequence_id").in("sequence_id", [...new Set(memberRows.map((r) => r.sequence?.id).filter(Boolean))] as string[]),
+    );
+    for (const row of memberRows) {
+      if (!row.sequence) continue;
+      const of = counts.filter((c) => c.sequence_id === row.sequence!.id).length;
+      ctx.partOf.set(row.member_id, { ...row.sequence, position: row.position, of });
+    }
+  }
+  return ctx;
 }
 
 /** Items derived from this one, such as a video's reading. */
@@ -116,7 +159,7 @@ export async function getLibrary(courseId: string) {
   const rows = check(
     await supabase
       .from("course_library")
-      .select("section, position, items(id, slug, title, kind, summary, duration_seconds)")
+      .select("section, position, items(id, slug, title, kind, summary, duration_seconds, delivery_note)")
       .eq("course_id", courseId),
   );
   return rows.filter((r) => r.items).sort((a, b) => a.position - b.position);

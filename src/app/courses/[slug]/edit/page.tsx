@@ -1,9 +1,11 @@
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { addUnit, deleteUnit, moveModule, moveModuleAcrossUnits, moveUnit, renameUnit, setHidden, setOpensOn } from "@/app/actions";
 import { getCourse, getCoursePath, getModuleMedia, today } from "@/lib/data";
 import { buildRoadmap } from "@/lib/roadmap";
 import { canEditCourses, getRole } from "@/lib/role";
+import { getJoinCode, getMemberCounts } from "@/lib/admin-data";
 import { Badge, Card } from "@/components/ui";
 import { ModuleNumber } from "@/components/roadmap";
 
@@ -30,13 +32,22 @@ async function EditCourseContent({ params }: Pick<PageProps<"/courses/[slug]/edi
   const course = await getCourse(slug);
   if (!course) notFound();
   if (course.kind !== "section" || !canEditCourses(await getRole())) redirect(`/courses/${slug}`);
-  const units = await getCoursePath(course.id);
+  const [units, code, counts, host] = await Promise.all([getCoursePath(course.id), getJoinCode(course.id), getMemberCounts(course.id), headers().then((h) => h.get("host"))]);
   const media = await getModuleMedia(units.flatMap((u) => u.placements.map((p) => p.module.id)));
   const rows = buildRoadmap(units, media, new Map(), today(), true);
   const numberOf = new Map(rows.map((r) => [r.placement.id, r.number]));
 
   return (
     <div className="space-y-8">
+      <Card className="flex flex-wrap items-center gap-5 p-5">
+        <div className="min-w-0 flex-1 basis-56">
+          <h2 className="font-semibold">Students join with a code</h2>
+          <p className="mt-0.5 text-sm text-muted">
+            Give them the code and send them to {host ?? "the site"}/join. {counts.students === 1 ? "1 student has" : `${counts.students} students have`} joined so far.
+          </p>
+        </div>
+        {code && <p className="rounded-lg bg-green-tint px-4 py-2 font-mono text-2xl font-semibold tracking-[0.25em] text-green-strong">{code}</p>}
+      </Card>
       <p className="max-w-prose text-muted">
         Changes here affect only this course; the template stays as it was. Students don&apos;t see hidden modules, and a dated module
         stays locked until its open date. Numbers restart in each unit.

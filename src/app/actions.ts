@@ -3,20 +3,43 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin, requireEditor } from "@/lib/role";
+import { requireAdmin, requireEditor, requireUser } from "@/lib/role";
 import { importGuideFromUrl } from "@/lib/guide-import";
 
 export async function createSection(formData: FormData) {
-  await requireEditor();
+  const viewer = await requireEditor();
   const template = String(formData.get("template") ?? "");
   const title = String(formData.get("title") ?? "");
-  const { data, error } = await createAdminClient().rpc("create_section_from_template", {
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("create_section_from_template", {
     p_template_slug: template,
     p_title: title,
   });
   if (error) throw new Error(error.message);
+  // The person who makes a course teaches it.
+  if (viewer.user) {
+    const { data: course } = await admin.from("courses").select("id").eq("slug", data).single();
+    if (course) await admin.from("course_members").insert({ course_id: course.id, user_id: viewer.user.id, role: "instructor" });
+  }
   revalidatePath("/");
   redirect(`/courses/${data}/edit`);
+}
+
+/** A student enters a course's join code once and is a member from then on. */
+export async function joinCourse(formData: FormData) {
+  const viewer = await requireUser();
+  const code = String(formData.get("code") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (code.length !== 6) redirect("/join?error=shape");
+  const admin = createAdminClient();
+  const { data: match, error } = await admin.from("course_join_codes").select("course_id, courses(slug)").eq("code", code).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!match?.courses) redirect("/join?error=unknown");
+  const { error: insertError } = await admin
+    .from("course_members")
+    .upsert({ course_id: match.course_id, user_id: viewer.user.id, role: "student" }, { onConflict: "course_id,user_id", ignoreDuplicates: true });
+  if (insertError) throw new Error(insertError.message);
+  revalidatePath("/", "layout");
+  redirect(`/courses/${match.courses.slug}`);
 }
 
 /** Changes allowed only on a section, never on a template. Returns the course slug for revalidation. */

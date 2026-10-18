@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
-import type { ModuleMedia } from "@/lib/roadmap";
+import { buildRoadmap, summarize, upNext, type ModuleMedia } from "@/lib/roadmap";
 
 type Tables = Database["public"]["Tables"];
 export type Course = Tables["courses"]["Row"];
@@ -310,4 +310,23 @@ export async function getLibraryWithSkills(courseId: string): Promise<LibraryHel
         skills: [...seen.values()],
       };
     });
+}
+
+export type Membership = { role: Database["public"]["Enums"]["course_role"]; joinedAt: string; course: Course };
+
+/** The signed-in viewer's courses (row-level security limits this to their own memberships). */
+export async function getMyCourses(): Promise<Membership[]> {
+  const supabase = await createClient();
+  const rows = check(await supabase.from("course_members").select("role, joined_at, courses(*)").order("joined_at", { ascending: false }));
+  return rows.filter((r) => r.courses).map((r) => ({ role: r.role, joinedAt: r.joined_at, course: r.courses! }));
+}
+
+/** Everything the roadmap needs for one course, for the home page's course cards. */
+export async function getCourseProgressSummary(course: Course, signedIn: boolean) {
+  const units = await getCoursePath(course.id);
+  const media = await getModuleMedia(units.flatMap((u) => u.placements.map((p) => p.module.id)));
+  const videoIds = [...media.values()].flatMap((m) => (m.videoId ? [m.videoId] : []));
+  const progress = signedIn ? await getMyVideoProgress(videoIds) : new Map<string, VideoProgress>();
+  const rows = buildRoadmap(units, media, progress, today(), false);
+  return { ...summarize(rows), next: upNext(rows), units: units.length };
 }

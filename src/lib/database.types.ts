@@ -325,6 +325,53 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"course_join_codes": {
+                  Row: {
+                    "code": string,"course_id": string,"created_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"course_id": string,"created_at"?: string
+                  }
+                  Update: {
+                    "code"?: string,"course_id"?: string,"created_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_join_codes_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: true
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"course_members": {
+                  Row: {
+                    "course_id": string,"joined_at": string,"role": Database["public"]['Enums']["course_role"],"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_id": string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id": string
+                  }
+                  Update: {
+                    "course_id"?: string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_members_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    },
+                    {
+      foreignKeyName: "course_members_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["user_id"]
+    }
+                  ]
                 },"video_watch_events": {
                   Row: {
                     "duration_seconds": number,"id": string,"intervals": NonNullable<Json>,"item_id": string,"recorded_at": string,"session_id": string,"user_id": string
@@ -411,10 +458,16 @@ isOneToOne: false
                            },
 "delete_empty_course_unit":
 { Args: { "p_unit_id": string }; Returns: undefined
+                           },
+"new_join_code":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"is_course_instructor":
+{ Args: { "p_course_id": string }; Returns: boolean
                            }
           }
           Enums: {
-            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
+            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","course_role": "student"|"instructor","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
           }
           CompositeTypes: {
             [_ in never]: never

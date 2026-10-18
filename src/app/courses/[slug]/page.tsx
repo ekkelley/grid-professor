@@ -18,8 +18,7 @@ async function RoadmapContent({ params }: Pick<PageProps<"/courses/[slug]">, "pa
   const progress = viewer.user ? await getMyVideoProgress(videoIds) : new Map();
   const rows = buildRoadmap(units, media, progress, today(), editor);
   const next = upNext(rows);
-  const { done, countable } = summarize(rows);
-  const percent = countable ? Math.round((done / countable) * 100) : 0;
+  const { done, countable, percent } = summarize(rows);
   const openUnitId = next?.unit.id ?? units[0]?.id;
 
   const minutes = next?.status.kind === "not_started" ? next.status.minutes : next?.media?.durationSeconds ? Math.round(next.media.durationSeconds / 60) : null;
@@ -31,7 +30,7 @@ async function RoadmapContent({ params }: Pick<PageProps<"/courses/[slug]">, "pa
     <div className="space-y-6">
       <section aria-label="Where you are" className="flex flex-wrap items-center gap-5 rounded-2xl bg-green-tint p-5">
         <div className="relative grid place-items-center">
-          <ProgressRing percent={percent} size={68} label={`${done} of ${countable} modules done`} />
+          <ProgressRing percent={percent} size={68} track="var(--card)" label={`${done} of ${countable} modules done, ${percent}% of the videos watched`} />
           <span className="absolute text-sm font-semibold tabular-nums text-green-strong">{percent}%</span>
         </div>
         <div className="min-w-0 flex-1 basis-56">

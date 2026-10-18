@@ -5,14 +5,14 @@ import type { ModuleStatus, RoadmapRow } from "@/lib/roadmap";
 import { Badge } from "@/components/ui";
 
 /** A ring that fills clockwise with the share done. Sized by the parent through `size`. */
-export function ProgressRing({ percent, size = 56, label }: { percent: number; size?: number; label: string }) {
+export function ProgressRing({ percent, size = 56, label, track = "var(--green-tint)" }: { percent: number; size?: number; label: string; track?: string }) {
   const stroke = Math.max(4, Math.round(size / 12));
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const clamped = Math.min(100, Math.max(0, percent));
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} className="shrink-0 -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--green-tint)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
       <circle
         cx={size / 2}
         cy={size / 2}

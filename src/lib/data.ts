@@ -240,3 +240,16 @@ export async function getModuleMedia(moduleIds: string[]): Promise<Map<string, M
   }
   return map;
 }
+
+/** Skill names per item, for filtering lists. */
+export async function getSkillNames(itemIds: string[]): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>();
+  if (itemIds.length === 0) return map;
+  const supabase = await createClient();
+  const rows = check(await supabase.from("item_skills").select("item_id, skills(name)").in("item_id", itemIds));
+  for (const r of rows) {
+    if (!r.skills) continue;
+    map.set(r.item_id, [...(map.get(r.item_id) ?? []), r.skills.name].sort((a, b) => a.localeCompare(b)));
+  }
+  return map;
+}

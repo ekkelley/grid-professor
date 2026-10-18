@@ -65,8 +65,16 @@ export function upNext(rows: RoadmapRow[]): RoadmapRow | undefined {
   return rows.find((r) => r.status.kind === "in_progress" || r.status.kind === "not_started");
 }
 
-/** Modules with a video count toward web progress, locked ones included: the denominator is the semester. */
-export function summarize(rows: RoadmapRow[]): { done: number; countable: number } {
+/**
+ * Modules with a video count toward web progress, locked ones included: the denominator is the
+ * semester. `percent` is the mean share watched, so partly watched modules move it.
+ */
+export function summarize(rows: RoadmapRow[]): { done: number; countable: number; percent: number } {
   const countable = rows.filter((r) => r.media?.videoId && !r.placement.isHidden);
-  return { done: countable.filter((r) => r.status.kind === "done").length, countable: countable.length };
+  const watched = countable.map((r) => ("percent" in r.status ? Math.min(100, r.status.percent) : 0));
+  return {
+    done: countable.filter((r) => r.status.kind === "done").length,
+    countable: countable.length,
+    percent: countable.length ? Math.round(watched.reduce((a, b) => a + b, 0) / countable.length) : 0,
+  };
 }

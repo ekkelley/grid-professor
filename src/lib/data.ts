@@ -253,3 +253,61 @@ export async function getSkillNames(itemIds: string[]): Promise<Map<string, stri
   }
   return map;
 }
+
+export type Skill = { id: string; slug: string; name: string; type: Database["public"]["Enums"]["skill_type"] };
+
+/** The Excel skills each module's items carry (videos and workbooks; readings are derived and skipped). */
+export async function getModuleSkills(moduleIds: string[]): Promise<Map<string, Skill[]>> {
+  const map = new Map<string, Skill[]>();
+  if (moduleIds.length === 0) return map;
+  const supabase = await createClient();
+  const slots = check(
+    await supabase.from("module_slots").select("module_id, slot_items(items(id, kind, item_skills(skills(id, slug, name, type))))").in("module_id", moduleIds),
+  );
+  for (const slot of slots) {
+    const seen = new Map<string, Skill>(map.get(slot.module_id)?.map((s) => [s.id, s]) ?? []);
+    for (const si of slot.slot_items) {
+      if (!si.items || si.items.kind === "read") continue;
+      for (const link of si.items.item_skills) if (link.skills) seen.set(link.skills.id, link.skills);
+    }
+    map.set(slot.module_id, [...seen.values()].sort((a, b) => a.name.localeCompare(b.name)));
+  }
+  return map;
+}
+
+export type LibraryHelp = {
+  id: string;
+  slug: string;
+  title: string;
+  section: LibrarySection;
+  summary: string | null;
+  minutes: number | null;
+  skills: Skill[];
+};
+
+/** Everything in a course's library with the skills it carries, for matching help to a module. */
+export async function getLibraryWithSkills(courseId: string): Promise<LibraryHelp[]> {
+  const supabase = await createClient();
+  const rows = check(
+    await supabase
+      .from("course_library")
+      .select("section, position, items(id, slug, title, summary, duration_seconds, item_skills(skills(id, slug, name, type)))")
+      .eq("course_id", courseId),
+  );
+  return rows
+    .filter((r) => r.items)
+    .sort((a, b) => a.position - b.position)
+    .map((r) => {
+      const seen = new Map<string, Skill>();
+      for (const link of r.items!.item_skills) if (link.skills) seen.set(link.skills.id, link.skills);
+      return {
+        id: r.items!.id,
+        slug: r.items!.slug,
+        title: r.items!.title,
+        section: r.section,
+        summary: r.items!.summary,
+        minutes: r.items!.duration_seconds ? Math.max(1, Math.round(r.items!.duration_seconds / 60)) : null,
+        skills: [...seen.values()],
+      };
+    });
+}

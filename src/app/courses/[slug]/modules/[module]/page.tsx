@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatDate, getCourse, getCoursePath, getDerivedGuides, getModuleMedia, getModuleSlots, getMyVideoProgress, getTags, getWorkbookContext, today } from "@/lib/data";
+import { formatDate, getCourse, getCoursePath, getDerivedGuides, getLibraryWithSkills, getModuleMedia, getModuleSkills, getModuleSlots, getMyVideoProgress, getTags, getWorkbookContext, today } from "@/lib/data";
 import { buildRoadmap } from "@/lib/roadmap";
 import { canEditCourses, getViewer } from "@/lib/role";
 import { Note, TagList } from "@/components/ui";
 import { SlotView, WorkbookPending } from "@/components/item-view";
 import { ModuleNumber } from "@/components/roadmap";
+import { ModuleHelp, matchHelp } from "@/components/module-help";
 
 async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/modules/[module]">, "params">) {
   const { slug, module: moduleSlug } = await params;
@@ -32,11 +33,14 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
   const workbookIds = slots.flat().filter((i) => i.kind === "workbook").map((i) => i.id);
   const hasWorkbook = workbookIds.length > 0;
   const videoIds = slots.flat().filter((i) => i.kind === "video").map((i) => i.id);
-  const [workbooks, guides, progress] = await Promise.all([
+  const [workbooks, guides, progress, moduleSkills, library] = await Promise.all([
     getWorkbookContext(workbookIds),
     getDerivedGuides(workbookIds),
     viewer.user ? getMyVideoProgress(videoIds) : Promise.resolve(new Map()),
+    getModuleSkills([placement.module.id]),
+    getLibraryWithSkills(course.id),
   ]);
+  const help = matchHelp(library, moduleSkills.get(placement.module.id) ?? [], slots.flat().map((i) => i.id));
   const prev = rows[index - 1];
   const next = rows[index + 1];
 
@@ -56,19 +60,24 @@ async function ModulePageContent({ params }: Pick<PageProps<"/courses/[slug]/mod
         <TagList tags={tags} />
       </header>
 
-      {slots.map((items, i) => (
-        <SlotView
-          key={i}
-          items={items}
-          workbooks={workbooks}
-          guides={guides}
-          courseSlug={course.slug}
-          admin={role === "admin"}
-          tracked={!!viewer.user}
-          progress={progress}
-        />
-      ))}
-      {!hasWorkbook && <WorkbookPending />}
+      <div className="space-y-6 lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start lg:gap-8 lg:space-y-0">
+        <div className="space-y-6">
+          {slots.map((items, i) => (
+            <SlotView
+              key={i}
+              items={items}
+              workbooks={workbooks}
+              guides={guides}
+              courseSlug={course.slug}
+              admin={role === "admin"}
+              tracked={!!viewer.user}
+              progress={progress}
+            />
+          ))}
+          {!hasWorkbook && <WorkbookPending />}
+        </div>
+        <ModuleHelp matches={help} courseSlug={course.slug} />
+      </div>
 
       <nav aria-label="Module navigation" className="flex justify-between gap-4 border-t border-line pt-4 text-sm">
         {prev ? (

@@ -9,7 +9,7 @@ export function CourseTabs({ slug, showEdit }: { slug: string; showEdit: boolean
   const tabs = [
     { href: base, label: "Roadmap", active: pathname === base || pathname.startsWith(`${base}/modules`) },
     { href: `${base}/library`, label: "Library", active: pathname.startsWith(`${base}/library`) || pathname.startsWith(`${base}/items`) },
-    { href: `${base}/grades`, label: "Grades", active: pathname.startsWith(`${base}/grades`) },
+    { href: `${base}/progress`, label: "Progress", active: pathname.startsWith(`${base}/progress`) },
     ...(showEdit ? [{ href: `${base}/edit`, label: "Edit course", active: pathname.startsWith(`${base}/edit`) }] : []),
   ];
   return (

@@ -77,7 +77,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
           {children}
         </main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">Prototype. Workbooks are graded by the Grid Professor add-in inside Excel.</footer>
+        <footer className="border-t border-line py-4 text-center text-xs text-muted">
+          Prototype. Workbooks are graded by the Grid Professor add-in inside Excel.{" "}
+          <Link href="/privacy" className="underline-offset-2 hover:underline">
+            Privacy
+          </Link>
+        </footer>
       </body>
     </html>
   );

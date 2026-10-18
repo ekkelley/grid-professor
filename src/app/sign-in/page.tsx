@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { sendCode, verifyCode } from "@/app/auth/actions";
+import { sendCode, signInWith, verifyCode } from "@/app/auth/actions";
+import { enabledProviders } from "@/lib/auth-providers";
 import { getViewer } from "@/lib/role";
 import { Card, Note } from "@/components/ui";
 
@@ -13,6 +14,8 @@ async function SignInContent({ searchParams }: Pick<PageProps<"/sign-in">, "sear
   const next = typeof params.next === "string" ? params.next : "/";
   const error = typeof params.error === "string" ? params.error : "";
   if ((await getViewer()).user) redirect(next.startsWith("/") ? next : "/");
+  const providers = enabledProviders();
+  const providerLabel = { google: "Google", azure: "Microsoft" } as const;
 
   return (
     <div className="mx-auto max-w-sm space-y-4">
@@ -20,6 +23,22 @@ async function SignInContent({ searchParams }: Pick<PageProps<"/sign-in">, "sear
       {error === "email" && <Note>That doesn&apos;t look like an email address.</Note>}
       {error === "send" && <Note>The code couldn&apos;t be sent. Wait a minute and try again.</Note>}
       {error === "code" && <Note>That code didn&apos;t match or has expired. Request a new one.</Note>}
+      {error === "provider" && <Note>That sign-in didn&apos;t complete. Try again, or use an email code instead.</Note>}
+
+      {providers.length > 0 && !email && (
+        <Card className="space-y-2 p-5">
+          <p className="text-sm text-muted">Use the account your school gave you, if it&apos;s one of these.</p>
+          {providers.map((provider) => (
+            <form key={provider} action={signInWith}>
+              <input type="hidden" name="provider" value={provider} />
+              <input type="hidden" name="next" value={next} />
+              <button type="submit" className="w-full rounded-lg border border-line bg-card px-3.5 py-2 text-sm font-medium hover:bg-bg">
+                Continue with {providerLabel[provider]}
+              </button>
+            </form>
+          ))}
+        </Card>
+      )}
 
       {email ? (
         <Card className="space-y-3 p-5">
@@ -47,7 +66,9 @@ async function SignInContent({ searchParams }: Pick<PageProps<"/sign-in">, "sear
         </Card>
       ) : (
         <Card className="space-y-3 p-5">
-          <p className="text-sm text-muted">Enter your email and we&apos;ll send a one-time code. No password to remember.</p>
+          <p className="text-sm text-muted">
+            {providers.length > 0 ? "Or enter your email and we'll send a one-time code." : "Enter your email and we'll send a one-time code. No password to remember."}
+          </p>
           <form action={sendCode} className="space-y-3">
             <input type="hidden" name="next" value={next} />
             <label htmlFor="email" className="block text-sm font-medium">

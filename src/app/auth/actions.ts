@@ -3,12 +3,33 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { PREVIEW_COOKIE, getViewer } from "@/lib/role";
 
 function safeNext(value: FormDataEntryValue | null): string {
   const next = typeof value === "string" ? value : "";
   return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
+/** Start a Google or Microsoft sign-in. The browser goes to the provider and comes back to /auth/callback. */
+export async function signInWith(formData: FormData) {
+  const provider = String(formData.get("provider"));
+  if (provider !== "google" && provider !== "azure") throw new Error("Unknown sign-in provider.");
+  const next = safeNext(formData.get("next"));
+  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      // Supabase needs a verified email from Microsoft; Google sends one by default.
+      ...(provider === "azure" ? { scopes: "email" } : {}),
+    },
+  });
+  if (error || !data.url) redirect(`/sign-in?error=provider&next=${encodeURIComponent(next)}`);
+  redirect(data.url);
 }
 
 /** Step 1: email a one-time code. New addresses become accounts on first sign-in. */

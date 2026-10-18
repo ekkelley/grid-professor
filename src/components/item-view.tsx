@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { attachWorkbookFile, importWorkbookGuide } from "@/app/actions";
@@ -6,9 +7,19 @@ import type { Item, WorkbookContext } from "@/lib/data";
 import { Badge, Card } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 
-function VideoItem({ item, tracked, progress }: { item: Item; tracked: boolean; progress?: number | null }) {
+export function VideoItem({ item, tracked, progress, actions }: { item: Item; tracked: boolean; progress?: number | null; actions?: ReactNode }) {
   if (!item.stored_at) return null;
-  return <VideoPlayer itemId={item.id} src={item.stored_at} title={item.title} tracked={tracked} initialPercent={progress ?? null} />;
+  return <VideoPlayer itemId={item.id} src={item.stored_at} title={item.title} tracked={tracked} initialPercent={progress ?? null} actions={actions} />;
+}
+
+/** A reading's body alone, for places that supply their own frame (the module panel). */
+export function ReadBody({ item }: { item: Item }) {
+  if (!item.body_md) return null;
+  return (
+    <div className="prose-reading text-[15px]">
+      <Markdown remarkPlugins={[remarkGfm]}>{item.body_md}</Markdown>
+    </div>
+  );
 }
 
 function ReadItem({ item, heading }: { item: Item; heading: string }) {
@@ -25,18 +36,21 @@ function ReadItem({ item, heading }: { item: Item; heading: string }) {
 
 type DerivedGuide = { id: string; slug: string; title: string };
 
-function WorkbookItem({
+export function WorkbookItem({
   item,
   workbooks,
   guides = [],
   courseSlug,
   admin = false,
+  bare = false,
 }: {
   item: Item;
   workbooks?: WorkbookContext;
   guides?: DerivedGuide[];
   courseSlug?: string;
   admin?: boolean;
+  /** No card frame, for places that supply their own (the module panel). */
+  bare?: boolean;
 }) {
   const builds = item.workbook_builds.filter((b) => b.status === "current");
   const withFile = builds.filter((b) => b.file_path);
@@ -45,8 +59,9 @@ function WorkbookItem({
   const isSequence = members.length > 0;
   const variantLabel = (v: string) => (v === "competition" ? "timed version" : v === "training" ? "practice version" : "workbook");
 
+  const Frame = bare ? "div" : Card;
   return (
-    <Card className="p-5">
+    <Frame className={bare ? "" : "p-5"}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted">Excel workbook</p>
@@ -139,11 +154,11 @@ function WorkbookItem({
           </form>
         </div>
       )}
-    </Card>
+    </Frame>
   );
 }
 
-function GuideItem({ item }: { item: Item }) {
+export function GuideItem({ item }: { item: Item }) {
   if (!item.body_md) return null;
   return (
     <Card className="p-5">

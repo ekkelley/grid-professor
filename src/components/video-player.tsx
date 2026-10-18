@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Player from "@vimeo/player";
 import { recordVideoWatch } from "@/app/progress/actions";
 import type { Interval } from "@/lib/intervals";
@@ -21,12 +21,15 @@ export function VideoPlayer({
   title,
   tracked,
   initialPercent,
+  actions,
 }: {
   itemId: string;
   src: string;
   title: string;
   tracked: boolean;
   initialPercent: number | null;
+  /** Buttons shown under the player, on the right. */
+  actions?: ReactNode;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [percent, setPercent] = useState<number | null>(initialPercent);
@@ -113,7 +116,6 @@ export function VideoPlayer({
         />
       </div>
       <figcaption className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
-        <span>Video</span>
         {tracked ? (
           <span aria-live="polite">
             Watched {Math.round(shown)}%{saving === "saving" ? ", saving…" : saving === "failed" ? ", not saved yet" : ""}
@@ -121,6 +123,7 @@ export function VideoPlayer({
         ) : (
           <span>Sign in to have your viewing count.</span>
         )}
+        {actions && <span className="flex flex-wrap gap-2">{actions}</span>}
       </figcaption>
     </figure>
   );

@@ -94,6 +94,12 @@ export async function getItemById(id: string): Promise<Item | null> {
   return data;
 }
 
+export async function getItemsByIds(ids: string[]): Promise<Item[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  return check(await supabase.from("items").select("*, workbook_builds(*)").in("id", ids));
+}
+
 export type SequenceLink = { id: string; slug: string; title: string; position: number };
 export type WorkbookContext = {
   /** For a sequence: its members in order. */

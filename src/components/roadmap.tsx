@@ -182,3 +182,17 @@ export function UnitSection({
     </details>
   );
 }
+
+/** A line from the instructor between modules. No marker on the spine: it isn't a step. */
+export function NoteRow({ text, hidden }: { text: string; hidden?: boolean }) {
+  return (
+    <li className="relative pl-7">
+      <div className="flex items-start gap-4 py-2.5 pr-4">
+        <span aria-hidden="true" className="w-8 shrink-0" />
+        <p className="min-w-0 flex-1 text-sm text-muted">{text}</p>
+        {hidden && <Badge tone="note">Hidden from students</Badge>}
+      </div>
+    </li>
+  );
+}
+

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { addUnit, deleteUnit, moveModule, moveModuleAcrossUnits, moveUnit, renameUnit, setHidden, setOpensOn } from "@/app/actions";
+import { addNote, addUnit, deleteNote, deleteUnit, moveModule, moveModuleAcrossUnits, moveUnit, renameUnit, setHidden, setOpensOn, updateNote } from "@/app/actions";
 import { getCourse, getCoursePath, getModuleMedia, today } from "@/lib/data";
 import { buildRoadmap } from "@/lib/roadmap";
 import { canEditCourses, getRole } from "@/lib/role";
@@ -92,53 +92,99 @@ async function EditCourseContent({ params }: Pick<PageProps<"/courses/[slug]/edi
           </div>
 
           <Card className="overflow-hidden">
-            {unit.placements.length === 0 ? (
+            {unit.entries.length === 0 ? (
               <p className="px-4 py-3 text-sm text-muted">No modules yet. Move one here with the ⇈ and ⇊ buttons on a module in the unit above or below.</p>
             ) : (
               <ol>
-                {unit.placements.map((p, i) => (
-                  <li key={p.id} className="flex flex-wrap items-center gap-3 border-line px-4 py-3 [&:not(:first-child)]:border-t">
-                    <div className="flex gap-1">
-                      <IconForm action={moveModule} fields={{ placement: p.id, direction: "-1" }} label={`Move ${p.title} up`} disabled={i === 0}>
-                        ↑
-                      </IconForm>
-                      <IconForm action={moveModule} fields={{ placement: p.id, direction: "1" }} label={`Move ${p.title} down`} disabled={i === unit.placements.length - 1}>
-                        ↓
-                      </IconForm>
-                      <IconForm action={moveModuleAcrossUnits} fields={{ placement: p.id, direction: "-1" }} label={`Move ${p.title} to the unit above`} disabled={ui === 0}>
-                        ⇈
-                      </IconForm>
-                      <IconForm action={moveModuleAcrossUnits} fields={{ placement: p.id, direction: "1" }} label={`Move ${p.title} to the unit below`} disabled={ui === units.length - 1}>
-                        ⇊
-                      </IconForm>
-                    </div>
+                {unit.entries.map((entry, i) => {
+                  const id = entry.kind === "module" ? entry.placement.id : entry.note.id;
+                  const name = entry.kind === "module" ? entry.placement.title : "this note";
+                  const hidden = entry.kind === "module" ? entry.placement.isHidden : entry.note.isHidden;
+                  return (
+                    <li key={id} className="flex flex-wrap items-center gap-3 border-line px-4 py-3 [&:not(:first-child)]:border-t">
+                      <div className="flex gap-1">
+                        <IconForm action={moveModule} fields={{ placement: id, direction: "-1" }} label={`Move ${name} up`} disabled={i === 0}>
+                          ↑
+                        </IconForm>
+                        <IconForm action={moveModule} fields={{ placement: id, direction: "1" }} label={`Move ${name} down`} disabled={i === unit.entries.length - 1}>
+                          ↓
+                        </IconForm>
+                        <IconForm action={moveModuleAcrossUnits} fields={{ placement: id, direction: "-1" }} label={`Move ${name} to the unit above`} disabled={ui === 0}>
+                          ⇈
+                        </IconForm>
+                        <IconForm action={moveModuleAcrossUnits} fields={{ placement: id, direction: "1" }} label={`Move ${name} to the unit below`} disabled={ui === units.length - 1}>
+                          ⇊
+                        </IconForm>
+                      </div>
 
-                    <ModuleNumber number={numberOf.get(p.id) ?? null} className="w-8" />
-                    <span className={`min-w-0 flex-1 font-medium ${p.isHidden ? "text-muted line-through" : ""}`}>{p.title}</span>
-                    {p.isHidden && <Badge tone="note">Hidden</Badge>}
+                      {entry.kind === "module" ? (
+                        <>
+                          <ModuleNumber number={numberOf.get(id) ?? null} className="w-8" />
+                          <span className={`min-w-0 flex-1 font-medium ${hidden ? "text-muted line-through" : ""}`}>{entry.placement.title}</span>
+                          {hidden && <Badge tone="note">Hidden</Badge>}
 
-                    <form action={setOpensOn} className="flex items-center gap-2">
-                      <input type="hidden" name="placement" value={p.id} />
-                      <label htmlFor={`opens-${p.id}`} className="text-sm text-muted">
-                        Opens
-                      </label>
-                      <input id={`opens-${p.id}`} type="date" name="opens_on" defaultValue={p.opensOn ?? ""} className={input} />
-                      <button type="submit" className={textButton}>
-                        Save
-                      </button>
-                    </form>
+                          <form action={setOpensOn} className="flex items-center gap-2">
+                            <input type="hidden" name="placement" value={id} />
+                            <label htmlFor={`opens-${id}`} className="text-sm text-muted">
+                              Opens
+                            </label>
+                            <input id={`opens-${id}`} type="date" name="opens_on" defaultValue={entry.placement.opensOn ?? ""} className={input} />
+                            <button type="submit" className={textButton}>
+                              Save
+                            </button>
+                          </form>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-8 text-xs text-muted">Note</span>
+                          <form action={updateNote} className="flex min-w-0 flex-1 items-center gap-2">
+                            <input type="hidden" name="placement" value={id} />
+                            <label htmlFor={`note-${id}`} className="sr-only">
+                              Note text
+                            </label>
+                            <input id={`note-${id}`} name="text" defaultValue={entry.note.text} required className={`${input} min-w-0 flex-1 ${hidden ? "text-muted" : ""}`} />
+                            <button type="submit" className={textButton}>
+                              Save
+                            </button>
+                          </form>
+                          {hidden && <Badge tone="note">Hidden</Badge>}
+                          <form action={deleteNote}>
+                            <input type="hidden" name="placement" value={id} />
+                            <button type="submit" className={textButton}>
+                              Delete
+                            </button>
+                          </form>
+                        </>
+                      )}
 
-                    <form action={setHidden}>
-                      <input type="hidden" name="placement" value={p.id} />
-                      <input type="hidden" name="hidden" value={String(!p.isHidden)} />
-                      <button type="submit" className={textButton}>
-                        {p.isHidden ? "Show" : "Hide"}
-                      </button>
-                    </form>
-                  </li>
-                ))}
+                      <form action={setHidden}>
+                        <input type="hidden" name="placement" value={id} />
+                        <input type="hidden" name="hidden" value={String(!hidden)} />
+                        <button type="submit" className={textButton}>
+                          {hidden ? "Show" : "Hide"}
+                        </button>
+                      </form>
+                    </li>
+                  );
+                })}
               </ol>
             )}
+            <form action={addNote} className="flex flex-wrap items-center gap-2 border-t border-line bg-bg px-4 py-2.5">
+              <input type="hidden" name="unit" value={unit.id} />
+              <label htmlFor={`new-note-${unit.id}`} className="text-sm text-muted">
+                Add a note
+              </label>
+              <input
+                id={`new-note-${unit.id}`}
+                name="text"
+                required
+                placeholder="A line for students, e.g. Finish these three before Thursday's class"
+                className={`${input} min-w-0 flex-1`}
+              />
+              <button type="submit" className={textButton}>
+                Add
+              </button>
+            </form>
           </Card>
         </section>
       ))}

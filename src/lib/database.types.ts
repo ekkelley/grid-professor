@@ -33,14 +33,14 @@ isOneToOne: false
                   ]
                 },"course_modules": {
                   Row: {
-                    "id": string,"is_hidden": boolean,"module_id": string,"opens_on": string | null,"position": number,"title_override": string | null,"unit_id": string
+                    "id": string,"is_hidden": boolean,"module_id": string | null,"note": string | null,"opens_on": string | null,"position": number,"title_override": string | null,"unit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"is_hidden"?: boolean,"module_id": string,"opens_on"?: string | null,"position": number,"title_override"?: string | null,"unit_id": string
+                    "id"?: string,"is_hidden"?: boolean,"module_id"?: string | null,"note"?: string | null,"opens_on"?: string | null,"position": number,"title_override"?: string | null,"unit_id": string
                   }
                   Update: {
-                    "id"?: string,"is_hidden"?: boolean,"module_id"?: string,"opens_on"?: string | null,"position"?: number,"title_override"?: string | null,"unit_id"?: string
+                    "id"?: string,"is_hidden"?: boolean,"module_id"?: string | null,"note"?: string | null,"opens_on"?: string | null,"position"?: number,"title_override"?: string | null,"unit_id"?: string
                   }
                   Relationships: [
                     {

@@ -121,6 +121,42 @@ export async function moveModuleAcrossUnits(formData: FormData) {
   revalidatePath(`/courses/${slug}`, "layout");
 }
 
+/** A line of text between modules, from the instructor to the class. Goes at the end of the unit. */
+export async function addNote(formData: FormData) {
+  await requireEditor();
+  const unitId = String(formData.get("unit"));
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text) throw new Error("Write the note first.");
+  const slug = await sectionSlugForUnit(unitId);
+  const admin = createAdminClient();
+  const { data: rows, error: readError } = await admin.from("course_modules").select("position").eq("unit_id", unitId);
+  if (readError) throw new Error(readError.message);
+  const position = Math.max(0, ...rows.map((r) => r.position)) + 1;
+  const { error } = await admin.from("course_modules").insert({ unit_id: unitId, note: text, position });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
+export async function updateNote(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("placement"));
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text) throw new Error("Write the note first, or delete it.");
+  const slug = await sectionSlugForPlacement(id);
+  const { error } = await createAdminClient().from("course_modules").update({ note: text }).eq("id", id).not("note", "is", null);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
+export async function deleteNote(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("placement"));
+  const slug = await sectionSlugForPlacement(id);
+  const { error } = await createAdminClient().from("course_modules").delete().eq("id", id).not("note", "is", null);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
 export async function addUnit(formData: FormData) {
   await requireEditor();
   const course = await sectionBySlug(String(formData.get("course") ?? ""));

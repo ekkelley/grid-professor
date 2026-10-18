@@ -16,7 +16,19 @@ export type Placement = {
   title: string;
   module: { id: string; slug: string; title: string; summary: string | null };
 };
-export type Unit = { id: string; slug: string; title: string; summary: string | null; position: number; placements: Placement[] };
+export type UnitNote = { id: string; position: number; isHidden: boolean; text: string };
+export type UnitEntry = { kind: "module"; placement: Placement } | { kind: "note"; note: UnitNote };
+export type Unit = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  position: number;
+  /** Module placements only, in order. */
+  placements: Placement[];
+  /** Modules and instructor notes interleaved, in order. */
+  entries: UnitEntry[];
+};
 export type Tag = { slug: string; name: string; kind: "skill" | "topic"; basis: string };
 
 function check<T>(result: { data: T | null; error: { message: string } | null }): T {
@@ -42,28 +54,34 @@ export async function getCoursePath(courseId: string): Promise<Unit[]> {
   const units = check(
     await supabase
       .from("course_units")
-      .select("id, slug, title, summary, position, course_modules(id, position, is_hidden, opens_on, title_override, modules(id, slug, title, summary))")
+      .select("id, slug, title, summary, position, course_modules(id, position, is_hidden, opens_on, title_override, note, modules(id, slug, title, summary))")
       .eq("course_id", courseId),
   );
   return units
-    .map((u) => ({
-      id: u.id,
-      slug: u.slug,
-      title: u.title,
-      summary: u.summary,
-      position: u.position,
-      placements: u.course_modules
-        .filter((cm) => cm.modules)
-        .map((cm) => ({
-          id: cm.id,
-          position: cm.position,
-          isHidden: cm.is_hidden,
-          opensOn: cm.opens_on,
-          title: cm.title_override ?? cm.modules!.title,
-          module: cm.modules!,
-        }))
-        .sort((a, b) => a.position - b.position),
-    }))
+    .map((u) => {
+      const rows = [...u.course_modules].sort((a, b) => a.position - b.position);
+      const entries: UnitEntry[] = rows.flatMap((cm): UnitEntry[] => {
+        if (cm.modules) {
+          return [
+            {
+              kind: "module" as const,
+              placement: { id: cm.id, position: cm.position, isHidden: cm.is_hidden, opensOn: cm.opens_on, title: cm.title_override ?? cm.modules.title, module: cm.modules },
+            },
+          ];
+        }
+        if (cm.note !== null) return [{ kind: "note" as const, note: { id: cm.id, position: cm.position, isHidden: cm.is_hidden, text: cm.note } }];
+        return [];
+      });
+      return {
+        id: u.id,
+        slug: u.slug,
+        title: u.title,
+        summary: u.summary,
+        position: u.position,
+        placements: entries.flatMap((e) => (e.kind === "module" ? [e.placement] : [])),
+        entries,
+      };
+    })
     .sort((a, b) => a.position - b.position);
 }
 

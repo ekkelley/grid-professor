@@ -5,7 +5,7 @@ import { getCourse, getCoursePath, getModuleMedia, getMyVideoProgress, today } f
 import { buildRoadmap, summarize, upNext } from "@/lib/roadmap";
 import { canEditCourses, getViewer } from "@/lib/role";
 import { ButtonLink } from "@/components/ui";
-import { ModuleNumber, ProgressRing, RoadmapRowView, UnitSection } from "@/components/roadmap";
+import { ModuleNumber, NoteRow, ProgressRing, RoadmapRowView, UnitSection } from "@/components/roadmap";
 
 async function RoadmapContent({ params }: Pick<PageProps<"/courses/[slug]">, "params">) {
   const { slug } = await params;
@@ -81,9 +81,14 @@ async function RoadmapContent({ params }: Pick<PageProps<"/courses/[slug]">, "pa
           return (
             <li key={unit.id}>
               <UnitSection index={i + 1} title={unit.title} summary={unit.summary} open={unit.id === openUnitId} done={unitDone} countable={unitCountable}>
-                {unitRows.map((row) => (
-                  <RoadmapRowView key={row.placement.id} row={row} courseSlug={course.slug} editor={editor} />
-                ))}
+                {unit.entries.map((entry) => {
+                  if (entry.kind === "note") {
+                    if (entry.note.isHidden && !editor) return null;
+                    return <NoteRow key={entry.note.id} text={entry.note.text} hidden={entry.note.isHidden} />;
+                  }
+                  const row = unitRows.find((r) => r.placement.id === entry.placement.id);
+                  return row ? <RoadmapRowView key={row.placement.id} row={row} courseSlug={course.slug} editor={editor} /> : null;
+                })}
               </UnitSection>
             </li>
           );

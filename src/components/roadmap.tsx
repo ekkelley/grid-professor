@@ -163,7 +163,7 @@ export function UnitSection({
           <span className="block text-base font-semibold">
             <span className="text-muted">Unit {index}</span> {title}
           </span>
-          {summary && <span className="mt-0.5 line-clamp-1 block text-sm text-muted">{summary}</span>}
+          {summary && <span className="mt-0.5 line-clamp-1 text-sm text-muted">{summary}</span>}
         </span>
         {countable > 0 && (
           <span className="flex shrink-0 items-center gap-2.5 text-sm tabular-nums text-muted">

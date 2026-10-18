@@ -152,7 +152,7 @@ export function LibraryBrowser({ entries, courseSlug }: { entries: LibraryEntry[
                     <li key={e.id}>
                       <Link href={`/courses/${courseSlug}/items/${e.slug}`} className="block h-full rounded-xl border border-line bg-card px-4 py-3 hover:border-green">
                         <span className="block font-semibold">{e.title}</span>
-                        {e.summary && <span className="mt-0.5 line-clamp-2 block text-sm text-muted">{e.summary}</span>}
+                        {e.summary && <span className="mt-0.5 line-clamp-2 text-sm text-muted">{e.summary}</span>}
                       </Link>
                     </li>
                   ))}
@@ -164,7 +164,7 @@ export function LibraryBrowser({ entries, courseSlug }: { entries: LibraryEntry[
                       <Link href={`/courses/${courseSlug}/items/${e.slug}`} className="flex items-center gap-4 px-4 py-3 hover:bg-bg">
                         <span className="min-w-0 flex-1">
                           <span className="block font-medium">{e.title}</span>
-                          {e.summary && <span className="mt-0.5 line-clamp-1 block text-sm text-muted">{e.summary}</span>}
+                          {e.summary && <span className="mt-0.5 line-clamp-1 text-sm text-muted">{e.summary}</span>}
                         </span>
                         <span className="shrink-0 text-sm tabular-nums text-muted">{e.minutes ? `${e.minutes} min` : e.deliveryNote ?? ""}</span>
                       </Link>

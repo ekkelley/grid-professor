@@ -38,7 +38,7 @@ async function GradesContent({ params }: Pick<PageProps<"/courses/[slug]/grades"
 
   return (
     <div className="space-y-6">
-      {viewer.previewing && <Note>You&apos;re viewing as a student, so this shows your own viewing, not a class.</Note>}
+      {viewer.previewing && <Note>You&apos;re viewing as a {viewer.role}, so this shows your own viewing, not a class.</Note>}
       <Card className="flex flex-wrap items-baseline justify-between gap-3 p-5">
         <div>
           <h2 className="text-lg font-semibold">Videos</h2>

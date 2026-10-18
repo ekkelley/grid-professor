@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { PREVIEW_COOKIE, getViewer } from "@/lib/role";
+import { PREVIEW_COOKIE, getViewer, previewRoles } from "@/lib/role";
 
 function safeNext(value: FormDataEntryValue | null): string {
   const next = typeof value === "string" ? value : "";
@@ -65,13 +65,14 @@ export async function signOut() {
   redirect("/");
 }
 
-/** Instructors and admins can look at the site as a student would. */
+/** Instructors and admins can look at the site as a lesser role would. */
 export async function setPreview(formData: FormData) {
   const viewer = await getViewer();
-  if (viewer.actualRole === "student") return;
+  const wanted = formData.get("preview");
+  const role = previewRoles(viewer.actualRole).find((r) => r === wanted);
   const store = await cookies();
-  if (formData.get("preview") === "student") {
-    store.set(PREVIEW_COOKIE, "student", { path: "/", sameSite: "lax", httpOnly: true, maxAge: 60 * 60 * 24 });
+  if (role) {
+    store.set(PREVIEW_COOKIE, role, { path: "/", sameSite: "lax", httpOnly: true, maxAge: 60 * 60 * 24 });
   } else {
     store.delete(PREVIEW_COOKIE);
   }

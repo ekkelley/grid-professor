@@ -6,8 +6,13 @@ import type { Database } from "@/lib/database.types";
 export type Role = Database["public"]["Enums"]["user_role"];
 export const ROLES: readonly Role[] = ["student", "instructor", "admin"];
 
-/** Set by an instructor or admin to see the site as a student would. */
+/** Set by an instructor or admin to see the site as a lesser role would. */
 export const PREVIEW_COOKIE = "gp_preview";
+
+/** The roles someone may preview as: anything below their own. */
+export function previewRoles(actualRole: Role): Role[] {
+  return ROLES.slice(0, ROLES.indexOf(actualRole));
+}
 
 export type Viewer = {
   user: { id: string; email: string } | null;
@@ -26,12 +31,13 @@ export async function getViewer(): Promise<Viewer> {
 
   const { data: profile } = await supabase.from("profiles").select("role, email").eq("user_id", claims.sub).maybeSingle();
   const actualRole: Role = profile?.role ?? "student";
-  const previewing = actualRole !== "student" && (await cookies()).get(PREVIEW_COOKIE)?.value === "student";
+  const wanted = (await cookies()).get(PREVIEW_COOKIE)?.value;
+  const preview = previewRoles(actualRole).find((r) => r === wanted);
   return {
     user: { id: claims.sub, email: profile?.email ?? (typeof claims.email === "string" ? claims.email : "") },
-    role: previewing ? "student" : actualRole,
+    role: preview ?? actualRole,
     actualRole,
-    previewing,
+    previewing: preview !== undefined,
   };
 }
 

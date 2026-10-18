@@ -4,7 +4,7 @@ import Link from "next/link";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { setPreview, signOut } from "@/app/auth/actions";
-import { getViewer } from "@/lib/role";
+import { getViewer, previewRoles } from "@/lib/role";
 import { Wordmark } from "@/components/ui";
 import "./globals.css";
 
@@ -27,24 +27,18 @@ async function Account() {
       {viewer.actualRole !== "student" && (
         <form action={setPreview} className="flex items-center gap-1 rounded-lg border border-line bg-card p-1">
           <span className="px-1.5 text-muted">View as</span>
-          <button
-            type="submit"
-            name="preview"
-            value="self"
-            aria-pressed={!viewer.previewing}
-            className={`rounded-md px-2 py-0.5 capitalize ${!viewer.previewing ? "bg-green text-white" : "hover:bg-bg"}`}
-          >
-            {viewer.actualRole}
-          </button>
-          <button
-            type="submit"
-            name="preview"
-            value="student"
-            aria-pressed={viewer.previewing}
-            className={`rounded-md px-2 py-0.5 ${viewer.previewing ? "bg-green text-white" : "hover:bg-bg"}`}
-          >
-            Student
-          </button>
+          {[viewer.actualRole, ...previewRoles(viewer.actualRole).reverse()].map((role) => (
+            <button
+              key={role}
+              type="submit"
+              name="preview"
+              value={role === viewer.actualRole ? "self" : role}
+              aria-pressed={viewer.role === role}
+              className={`rounded-md px-2 py-0.5 capitalize ${viewer.role === role ? "bg-green text-white" : "hover:bg-bg"}`}
+            >
+              {role}
+            </button>
+          ))}
         </form>
       )}
       <span className="max-w-48 truncate text-muted" title={viewer.user.email}>

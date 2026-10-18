@@ -2,7 +2,8 @@
 
 The content system for Grid Professor: courses, modules, videos, readings and the help library,
 with David Brown's Excel add-in as the grader. Design lives in the project folder
-(`OpenLane\Grid Professor`: SPEC.md, DECISIONS.md); this repo is the code.
+(`OpenLane\Grid Professor`: SPEC.md, DECISIONS.md) and the operating manual is OPERATIONS.md there;
+this repo is the code. Clone it to `E:\CC\grid-professor` (desktop) or your CC folder, never into OneDrive.
 
 **Status: prototype.** Two excel-for-finance chapters (Discounting, Annuities) as a template course,
 instructor copies, and a help library. Sign-in is a role switcher; workbooks open by link until the
@@ -19,12 +20,22 @@ Next.js 16 (App Router, Cache Components), TypeScript, Tailwind v4, Supabase (Po
 2. Copy `.env.example` to `.env.local` and fill in the Supabase keys.
 3. `npm run dev`
 
+## Sign-in
+
+Supabase Auth: a one-time email code (Resend SMTP), plus Google and Microsoft when
+`NEXT_PUBLIC_AUTH_PROVIDERS` lists them and the provider is configured in Supabase.
+Roles come from `profiles`, seeded from `role_grants` on first sign-in.
+
 ## Database
 
 - Schema and content are migrations in `supabase/migrations/`. Supabase's GitHub integration applies
   them when they land on `main`.
 - Every table has row-level security. Content is readable by anyone; all writes go through Server
   Actions with the secret key after a role check (`src/app/actions.ts`).
+- To test migrations locally on a plain Postgres, create the roles and a stub auth schema first:
+  `create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;`
+  `create schema auth; create function auth.uid() returns uuid language sql stable as 'select null::uuid';`
+  then apply `supabase/migrations/*.sql` in order.
 - `src/lib/database.types.ts` is generated: `npx supabase gen types typescript --project-id <ref> > src/lib/database.types.ts`.
 - The content migration is generated, not hand-written: `python3 scripts/generate-content-migration.py <prototype-inputs dir>`.
   Its inputs (the MyRumbo export and descriptors) stay in the project folder, not here.

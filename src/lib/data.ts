@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/database.types";
+import type { ModuleMedia } from "@/lib/roadmap";
 
 type Tables = Database["public"]["Tables"];
 export type Course = Tables["courses"]["Row"];
@@ -214,4 +215,28 @@ export function formatDuration(seconds: number | null): string | null {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+/** What each module holds that the web can track: its video (if any) and whether it has a workbook. */
+export async function getModuleMedia(moduleIds: string[]): Promise<Map<string, ModuleMedia>> {
+  const map = new Map<string, ModuleMedia>();
+  if (moduleIds.length === 0) return map;
+  const supabase = await createClient();
+  const slots = check(
+    await supabase.from("module_slots").select("module_id, position, slot_items(position, items(id, kind, duration_seconds))").in("module_id", moduleIds),
+  );
+  for (const slot of slots.sort((a, b) => a.position - b.position)) {
+    const entry = map.get(slot.module_id) ?? { videoId: null, durationSeconds: null, hasWorkbook: false };
+    for (const si of slot.slot_items.sort((a, b) => a.position - b.position)) {
+      const item = si.items;
+      if (!item) continue;
+      if (item.kind === "video" && !entry.videoId) {
+        entry.videoId = item.id;
+        entry.durationSeconds = item.duration_seconds;
+      }
+      if (item.kind === "workbook") entry.hasWorkbook = true;
+    }
+    map.set(slot.module_id, entry);
+  }
+  return map;
 }

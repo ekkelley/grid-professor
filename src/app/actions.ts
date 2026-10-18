@@ -63,6 +63,90 @@ export async function setOpensOn(formData: FormData) {
   revalidatePath(`/courses/${slug}`, "layout");
 }
 
+async function sectionSlugForUnit(unitId: string): Promise<string> {
+  const { data, error } = await createAdminClient().from("course_units").select("courses(slug, kind)").eq("id", unitId).single();
+  if (error) throw new Error(error.message);
+  if (!data.courses || data.courses.kind !== "section") throw new Error("Templates can't be edited here. Use this template to make your own copy.");
+  return data.courses.slug;
+}
+
+async function sectionBySlug(slug: string): Promise<{ id: string; slug: string }> {
+  const { data, error } = await createAdminClient().from("courses").select("id, slug, kind").eq("slug", slug).single();
+  if (error) throw new Error(error.message);
+  if (data.kind !== "section") throw new Error("Templates can't be edited here. Use this template to make your own copy.");
+  return data;
+}
+
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 100);
+}
+
+/** Move a module into the unit above (to its end) or below (to its start). */
+export async function moveModuleAcrossUnits(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("placement"));
+  const direction = Number(formData.get("direction"));
+  const slug = await sectionSlugForPlacement(id);
+  const { error } = await createAdminClient().rpc("move_course_module_across_units", { p_course_module_id: id, p_direction: direction });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
+export async function addUnit(formData: FormData) {
+  await requireEditor();
+  const course = await sectionBySlug(String(formData.get("course") ?? ""));
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) throw new Error("Give the unit a title.");
+  const admin = createAdminClient();
+  const { data: existing, error: readError } = await admin.from("course_units").select("slug, position").eq("course_id", course.id);
+  if (readError) throw new Error(readError.message);
+  const base = slugify(title) || "unit";
+  let slug = base;
+  for (let n = 2; existing.some((u) => u.slug === slug); n++) slug = `${base}-${n}`;
+  const position = Math.max(0, ...existing.map((u) => u.position)) + 1;
+  const { error } = await admin.from("course_units").insert({ course_id: course.id, slug, title, position });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${course.slug}`, "layout");
+}
+
+export async function renameUnit(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("unit"));
+  const title = String(formData.get("title") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (!title) throw new Error("Give the unit a title.");
+  const slug = await sectionSlugForUnit(id);
+  const { error } = await createAdminClient().from("course_units").update({ title, summary: summary || null }).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
+export async function moveUnit(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("unit"));
+  const direction = Number(formData.get("direction"));
+  const slug = await sectionSlugForUnit(id);
+  const { error } = await createAdminClient().rpc("move_course_unit", { p_unit_id: id, p_direction: direction });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
+/** Only an empty unit can be deleted; move its modules first. */
+export async function deleteUnit(formData: FormData) {
+  await requireEditor();
+  const id = String(formData.get("unit"));
+  const slug = await sectionSlugForUnit(id);
+  const { error } = await createAdminClient().rpc("delete_empty_course_unit", { p_unit_id: id });
+  if (error) throw new Error(error.message);
+  revalidatePath(`/courses/${slug}`, "layout");
+}
+
 // ---------------------------------------------------------------------------------------------
 // Content administration. Admin only; these write to the content system itself.
 // ---------------------------------------------------------------------------------------------

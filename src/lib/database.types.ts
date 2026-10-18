@@ -402,6 +402,15 @@ isOneToOne: false
                            },
 "move_course_module":
 { Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
+                           },
+"move_course_unit":
+{ Args: { "p_unit_id": string,"p_direction": number }; Returns: undefined
+                           },
+"move_course_module_across_units":
+{ Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
+                           },
+"delete_empty_course_unit":
+{ Args: { "p_unit_id": string }; Returns: undefined
                            }
           }
           Enums: {

@@ -21,7 +21,13 @@ function divisionLabel(d: string): string {
   if (d === "both") return "JV and Varsity";
   if (d === "jv") return "JV";
   if (d === "varsity") return "Varsity";
-  return "division open";
+  return "division: builder decides";
+}
+
+function shapeLabel(r: CaseRequest): string {
+  const lv = r.params.levelCount === null ? "levels: builder decides" : `${r.params.levelCount} ${r.params.levelCount === 1 ? "level" : "levels"}`;
+  const bn = r.params.bonusCount === null ? "bonuses: builder decides" : `${r.params.bonusCount} ${r.params.bonusCount === 1 ? "bonus" : "bonuses"}`;
+  return `${lv}, ${bn}, ${divisionLabel(r.params.division)}.`;
 }
 
 /** One request in the list; admins get the next pipeline step as a button. */
@@ -38,7 +44,7 @@ function RequestRow({ r, admin }: { r: CaseRequest; admin: boolean }) {
           <Badge tone={tone(r.status)}>{STATUS_LABEL[r.status]}</Badge>
         </div>
         <p className="mt-0.5 text-sm text-muted">
-          {r.params.levelCount} {r.params.levelCount === 1 ? "level" : "levels"}, {r.params.bonusCount} {r.params.bonusCount === 1 ? "bonus" : "bonuses"}, {divisionLabel(r.params.division)}. {chainSummary(r.params.levels)}
+          {shapeLabel(r)} {chainSummary(r.params.levels)}
           {r.files.length > 0 && ` ${r.files.length} file${r.files.length === 1 ? "" : "s"} attached.`}
           {admin && r.requesterEmail && ` Requested by ${r.requesterEmail}.`}
           {r.submitted_at && ` Submitted ${r.submitted_at.slice(0, 10)}.`}

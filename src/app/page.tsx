@@ -212,6 +212,27 @@ async function HomeContent() {
         </section>
       )}
 
+      {editor && (
+        <section aria-labelledby="cases-heading">
+          <Card className="flex flex-wrap items-center gap-5 p-5">
+            <div className="min-w-0 flex-1 basis-56">
+              <h2 id="cases-heading" className="font-semibold">
+                Competition cases
+              </h2>
+              <p className="mt-0.5 text-sm text-muted">
+                Request a case for your class or event: a story, a data set, a map or an example case, plus how the levels should chain. You get a brief to check before it is built.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <ButtonLink href="/cases" variant="secondary">
+                My requests
+              </ButtonLink>
+              <ButtonLink href="/cases/new">Request a case</ButtonLink>
+            </div>
+          </Card>
+        </section>
+      )}
+
       {others.length > 0 && (
         <section aria-labelledby="others-heading">
           <h2 id="others-heading" className="text-lg font-semibold">

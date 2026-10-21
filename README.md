@@ -50,3 +50,6 @@ Roles come from `profiles`, seeded from `role_grants` on first sign-in.
 | `/courses/[slug]/library` | Help outside the path: concept videos, function guides, practice files, games |
 | `/courses/[slug]/grades` | Placeholder until the add-in API exists |
 | `/courses/[slug]/edit` | Instructor: reorder, hide and date modules in their own copy |
+| `/cases` | Instructor: their competition-case requests (admins see all) |
+| `/cases/new`, `/cases/[id]/edit` | The request form: seed (story, data, map, rules, example case), dials, and the level chain |
+| `/cases/[id]` | The generated case brief, attachments, submit; admin status and notes. `/cases/[id]/brief` downloads the brief as Markdown |

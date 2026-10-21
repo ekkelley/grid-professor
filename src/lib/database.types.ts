@@ -325,6 +325,46 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"case_request_files": {
+                  Row: {
+                    "created_at": string,"file_name": string,"file_path": string,"id": string,"kind": Database["public"]['Enums']["case_request_file_kind"],"note": string | null,"request_id": string,"size_bytes": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"file_name": string,"file_path": string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id": string,"size_bytes": number
+                  }
+                  Update: {
+                    "created_at"?: string,"file_name"?: string,"file_path"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id"?: string,"size_bytes"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "case_request_files_request_id_fkey"
+      columns: ["request_id"]
+isOneToOne: false
+      referencedRelation: "case_requests"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"case_requests": {
+                  Row: {
+                    "admin_notes": string | null,"brief_md": string,"created_at": string,"id": string,"params": NonNullable<Json>,"requester_id": string,"status": Database["public"]['Enums']["case_request_status"],"submitted_at": string | null,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id": string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "case_requests_requester_id_fkey"
+      columns: ["requester_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["user_id"]
+    }
+                  ]
                 },"course_join_codes": {
                   Row: {
                     "code": string,"course_id": string,"created_at": string
@@ -462,12 +502,15 @@ isOneToOne: false
 "new_join_code":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"is_admin":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
 "is_course_instructor":
 { Args: { "p_course_id": string }; Returns: boolean
                            }
           }
           Enums: {
-            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","course_kind": "template"|"section","course_role": "student"|"instructor","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
+            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","case_request_file_kind": "data"|"map"|"example_case"|"other","case_request_status": "draft"|"submitted"|"in_progress"|"delivered"|"declined","course_kind": "template"|"section","course_role": "student"|"instructor","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -583,7 +626,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
+            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"case_request_file_kind": ["data", "map", "example_case", "other"],"case_request_status": ["draft", "submitted", "in_progress", "delivered", "declined"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
           }
         }
 } as const

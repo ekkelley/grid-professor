@@ -192,7 +192,7 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
           <Field id="timeLimit" label="Time limit, minutes">
             <input id="timeLimit" name="timeLimit" type="number" min={5} max={180} defaultValue={initial.timeLimit} className={input} />
           </Field>
-          <Field id="levelCount" label="Levels" help="Twenty games each, plus one Example per level.">
+          <Field id="levelCount" label="Levels" help="Twenty games each, plus one Example per level. One level is fine for a short exercise.">
             <input id="levelCount" name="levelCount" type="number" min={MIN_LEVELS} max={MAX_LEVELS} value={levelCount} onChange={(e) => resize(Math.min(MAX_LEVELS, Math.max(MIN_LEVELS, Number(e.target.value) || MIN_LEVELS)))} className={input} />
           </Field>
           <Field id="bonusCount" label="Bonus questions">

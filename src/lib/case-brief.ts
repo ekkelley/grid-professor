@@ -129,7 +129,7 @@ export const FORMATS = [
   { value: "team", label: "Team" },
 ] as const satisfies readonly Option<string>[];
 
-export const MIN_LEVELS = 3;
+export const MIN_LEVELS = 1;
 export const MAX_LEVELS = 10;
 export const MAX_BONUSES = 8;
 

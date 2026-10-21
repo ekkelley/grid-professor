@@ -279,7 +279,6 @@ function pick<T extends string>(v: FormDataEntryValue | null, options: readonly 
 
 /** Read the request form. Unknown values fall back to safe defaults; nothing throws. */
 export function paramsFromForm(form: FormData): CaseBriefParams {
-  const d = defaultParams();
   const division = pick(form.get("division"), DIVISIONS, "varsity");
   const levelCount = clampInt(form.get("levelCount"), MIN_LEVELS, MAX_LEVELS, 7);
   const bonusCount = clampInt(form.get("bonusCount"), 0, MAX_BONUSES, 5);
@@ -327,11 +326,11 @@ export function paramsFromForm(form: FormData): CaseBriefParams {
     halves: pick(form.get("halves"), HALVES, "none"),
     fullClear: pick(form.get("fullClear"), FULL_CLEAR, "derive"),
     points: str(form.get("points"), 80) || defaultPointsFor(levelCount),
-    bonusPoints: str(form.get("bonusPoints"), 80) || defaultBonusPointsFor(bonusCount),
+    bonusPoints: bonusCount === 0 ? "none" : str(form.get("bonusPoints"), 80) || defaultBonusPointsFor(bonusCount),
     mixing: str(form.get("mixing"), 300),
     levels,
-    bonusRelated: str(form.get("bonusRelated"), 2) || d.bonusRelated,
-    bonusHard: str(form.get("bonusHard"), 2) || d.bonusHard,
+    bonusRelated: String(Math.min(bonusCount, Math.max(0, Number(str(form.get("bonusRelated"), 2)) || 0))),
+    bonusHard: String(Math.min(bonusCount, Math.max(0, Number(str(form.get("bonusHard"), 2)) || 0))),
     bonusNotes: str(form.get("bonusNotes"), 1500),
     featureFunctions: str(form.get("featureFunctions"), 300),
     avoidFunctions: str(form.get("avoidFunctions"), 300),

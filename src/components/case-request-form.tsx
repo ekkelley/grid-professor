@@ -151,6 +151,14 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
   const [division, setDivision] = useState(initial.division);
   const [brand, setBrand] = useState(initial.brand);
   const [levels, setLevels] = useState<LevelParams[]>(initial.levels);
+  // Fields a count constrains. Points reset to the default for the new count unless the author has
+  // typed their own; the bonus counts clamp to the bonus count the moment it changes.
+  const [points, setPoints] = useState(initial.points);
+  const [pointsTouched, setPointsTouched] = useState(initial.points !== defaultPointsFor(initial.levelCount));
+  const [bonusPoints, setBonusPoints] = useState(initial.bonusPoints);
+  const [bonusPointsTouched, setBonusPointsTouched] = useState(initial.bonusPoints !== defaultBonusPointsFor(initial.bonusCount));
+  const [bonusRelated, setBonusRelated] = useState(Math.min(Number(initial.bonusRelated) || 0, initial.bonusCount));
+  const [bonusHard, setBonusHard] = useState(Math.min(Number(initial.bonusHard) || 0, initial.bonusCount));
 
   function resize(count: number) {
     setLevelCount(count);
@@ -158,6 +166,14 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
       const fresh = defaultLevels(division, count);
       return fresh.map((l, i) => (prev[i] ? { ...prev[i], buildsOn: prev[i].buildsOn.filter((m) => m <= i) } : l));
     });
+    if (!pointsTouched) setPoints(defaultPointsFor(count));
+  }
+
+  function resizeBonuses(count: number) {
+    setBonusCount(count);
+    if (!bonusPointsTouched) setBonusPoints(defaultBonusPointsFor(count));
+    setBonusRelated((v) => Math.min(v, count));
+    setBonusHard((v) => Math.min(v, count));
   }
   const summary = chainSummary(levels.slice(0, levelCount));
 
@@ -196,7 +212,7 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
             <input id="levelCount" name="levelCount" type="number" min={MIN_LEVELS} max={MAX_LEVELS} value={levelCount} onChange={(e) => resize(Math.min(MAX_LEVELS, Math.max(MIN_LEVELS, Number(e.target.value) || MIN_LEVELS)))} className={input} />
           </Field>
           <Field id="bonusCount" label="Bonus questions">
-            <input id="bonusCount" name="bonusCount" type="number" min={0} max={MAX_BONUSES} value={bonusCount} onChange={(e) => setBonusCount(Math.min(MAX_BONUSES, Math.max(0, Number(e.target.value) || 0)))} className={input} />
+            <input id="bonusCount" name="bonusCount" type="number" min={0} max={MAX_BONUSES} value={bonusCount} onChange={(e) => resizeBonuses(Math.min(MAX_BONUSES, Math.max(0, Number(e.target.value) || 0)))} className={input} />
           </Field>
           <Field id="audience" label="Who plays it" help="Majors, year, how much Excel they have seen, anything the builder should calibrate to." className="sm:col-span-2">
             <textarea id="audience" name="audience" defaultValue={initial.audience} maxLength={600} className={`${input} min-h-16`} />
@@ -283,11 +299,32 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
           <Field id="mixing" label="Mix of level types" help="e.g. mostly lookup with one geometry level; or at least three different types.">
             <input id="mixing" name="mixing" defaultValue={initial.mixing} maxLength={300} className={input} />
           </Field>
-          <Field id="points" label="Points per game, by level" help={`Default for ${levelCount} levels: ${defaultPointsFor(levelCount)}`}>
-            <input id="points" name="points" defaultValue={initial.levelCount === levelCount ? initial.points : defaultPointsFor(levelCount)} maxLength={80} className={input} />
+          <Field id="points" label="Points per game, by level" help={`One number per level, ${levelCount} in all. Default for ${levelCount}: ${defaultPointsFor(levelCount)}`}>
+            <input
+              id="points"
+              name="points"
+              value={points}
+              onChange={(e) => {
+                setPoints(e.target.value);
+                setPointsTouched(e.target.value.trim() !== "" && e.target.value !== defaultPointsFor(levelCount));
+              }}
+              maxLength={80}
+              className={input}
+            />
           </Field>
-          <Field id="bonusPoints" label="Bonus points" help={`Default for ${bonusCount}: ${defaultBonusPointsFor(bonusCount)}`}>
-            <input id="bonusPoints" name="bonusPoints" defaultValue={initial.bonusCount === bonusCount ? initial.bonusPoints : defaultBonusPointsFor(bonusCount)} maxLength={80} className={input} />
+          <Field id="bonusPoints" label="Bonus points" help={bonusCount === 0 ? "No bonuses." : `One number per bonus, ${bonusCount} in all. Default: ${defaultBonusPointsFor(bonusCount)}`}>
+            <input
+              id="bonusPoints"
+              name="bonusPoints"
+              value={bonusCount === 0 ? "none" : bonusPoints}
+              readOnly={bonusCount === 0}
+              onChange={(e) => {
+                setBonusPoints(e.target.value);
+                setBonusPointsTouched(e.target.value.trim() !== "" && e.target.value !== defaultBonusPointsFor(bonusCount));
+              }}
+              maxLength={80}
+              className={`${input} ${bonusCount === 0 ? "text-muted" : ""}`}
+            />
           </Field>
         </div>
       </Section>
@@ -304,18 +341,26 @@ export function CaseRequestForm({ initial, id, action }: { initial: CaseBriefPar
         </ul>
       </Section>
 
-      <Section title="Bonuses">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="bonusRelated" label={`How many of the ${bonusCount} relate to a level`}>
-            <input id="bonusRelated" name="bonusRelated" type="number" min={0} max={bonusCount} defaultValue={Math.min(Number(initial.bonusRelated) || 0, bonusCount)} className={input} />
-          </Field>
-          <Field id="bonusHard" label="How many are genuinely hard">
-            <input id="bonusHard" name="bonusHard" type="number" min={0} max={bonusCount} defaultValue={Math.min(Number(initial.bonusHard) || 0, bonusCount)} className={input} />
-          </Field>
-          <Field id="bonusNotes" label="Bonus ideas or constraints (optional)" className="sm:col-span-2">
-            <textarea id="bonusNotes" name="bonusNotes" defaultValue={initial.bonusNotes} maxLength={1500} className={`${input} min-h-16`} />
-          </Field>
-        </div>
+      <Section title="Bonuses" intro={bonusCount === 0 ? "This case has no bonus questions (set the count under The case to add some)." : undefined}>
+        {bonusCount > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="bonusRelated" label={`How many of the ${bonusCount} relate to a level`}>
+              <input id="bonusRelated" name="bonusRelated" type="number" min={0} max={bonusCount} value={bonusRelated} onChange={(e) => setBonusRelated(Math.min(bonusCount, Math.max(0, Number(e.target.value) || 0)))} className={input} />
+            </Field>
+            <Field id="bonusHard" label="How many are genuinely hard">
+              <input id="bonusHard" name="bonusHard" type="number" min={0} max={bonusCount} value={bonusHard} onChange={(e) => setBonusHard(Math.min(bonusCount, Math.max(0, Number(e.target.value) || 0)))} className={input} />
+            </Field>
+            <Field id="bonusNotes" label="Bonus ideas or constraints (optional)" className="sm:col-span-2">
+              <textarea id="bonusNotes" name="bonusNotes" defaultValue={initial.bonusNotes} maxLength={1500} className={`${input} min-h-16`} />
+            </Field>
+          </div>
+        )}
+        {bonusCount === 0 && (
+          <>
+            <input type="hidden" name="bonusRelated" value="0" />
+            <input type="hidden" name="bonusHard" value="0" />
+          </>
+        )}
       </Section>
 
       <Section title="Functions and delivery">

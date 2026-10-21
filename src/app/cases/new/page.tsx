@@ -16,7 +16,7 @@ async function NewCaseContent() {
       <div className="max-w-prose">
         <h1 className="text-2xl font-semibold tracking-tight">Request a case</h1>
         <p className="mt-1 text-muted">
-          Fill in what you know and leave the rest to the builder. You will see the brief it produces before you submit, and you can attach data files, a map or an example case on that page.
+          One field is enough; the builder chooses whatever you leave blank. You will see the brief before you submit, and you can attach data files, a map or an example case on that page.
         </p>
       </div>
       <CaseRequestForm initial={defaultParams()} action={saveCaseRequest} />

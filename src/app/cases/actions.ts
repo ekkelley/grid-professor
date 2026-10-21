@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canEditCourses, requireAdmin, requireUser } from "@/lib/role";
 import { canAccess, type CaseRequestStatus } from "@/lib/case-requests";
-import { paramsFromForm, paramsFromJson, renderBrief, type CaseBriefParams } from "@/lib/case-brief";
+import { paramsFromForm, paramsFromJson, renderBrief, statedFields, titleFor, type CaseBriefParams } from "@/lib/case-brief";
 
 const UUID = /^[0-9a-f-]{36}$/;
 const FILE_KINDS = ["data", "map", "example_case", "other"] as const;
@@ -55,19 +55,20 @@ async function rerender(id: string, params?: CaseBriefParams) {
 export async function saveCaseRequest(formData: FormData) {
   const viewer = await requireRequester();
   const params = paramsFromForm(formData);
-  if (!params.title) throw new Error("Give the case a working title.");
+  if (statedFields(params).length === 0) throw new Error("Fill in at least one field; the builder chooses the rest.");
+  const title = titleFor(params);
   const id = String(formData.get("id") ?? "");
   const admin = createAdminClient();
   let requestId = id;
   if (id) {
     const { row } = await ownedRequest(id);
     if (row.status === "in_progress" || row.status === "delivered") throw new Error("This request is already being built; ask for changes in a new request.");
-    const { error } = await admin.from("case_requests").update({ title: params.title }).eq("id", id);
+    const { error } = await admin.from("case_requests").update({ title }).eq("id", id);
     if (error) throw new Error(error.message);
   } else {
     const { data, error } = await admin
       .from("case_requests")
-      .insert({ requester_id: viewer.user.id, title: params.title, params: JSON.parse(JSON.stringify(params)) })
+      .insert({ requester_id: viewer.user.id, title, params: JSON.parse(JSON.stringify(params)) })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -82,7 +83,6 @@ export async function submitCaseRequest(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const { row } = await ownedRequest(id);
   if (row.status !== "draft") throw new Error("Only a draft can be submitted.");
-  if (!row.title.trim()) throw new Error("Give the case a working title first.");
   const admin = createAdminClient();
   const { error } = await admin.from("case_requests").update({ status: "submitted", submitted_at: new Date().toISOString() }).eq("id", id);
   if (error) throw new Error(error.message);

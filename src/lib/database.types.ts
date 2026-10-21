@@ -5,7 +5,67 @@ export type Database = {
   
   "public": {
           Tables: {
-            "course_library": {
+            "case_request_files": {
+                  Row: {
+                    "created_at": string,"file_name": string,"file_path": string,"id": string,"kind": Database["public"]['Enums']["case_request_file_kind"],"note": string | null,"request_id": string,"size_bytes": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"file_name": string,"file_path": string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id": string,"size_bytes": number
+                  }
+                  Update: {
+                    "created_at"?: string,"file_name"?: string,"file_path"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id"?: string,"size_bytes"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "case_request_files_request_id_fkey"
+      columns: ["request_id"]
+isOneToOne: false
+      referencedRelation: "case_requests"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"case_requests": {
+                  Row: {
+                    "admin_notes": string | null,"brief_md": string,"created_at": string,"id": string,"params": NonNullable<Json>,"requester_id": string,"status": Database["public"]['Enums']["case_request_status"],"submitted_at": string | null,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id": string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "case_requests_requester_id_fkey"
+      columns: ["requester_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["user_id"]
+    }
+                  ]
+                },"course_join_codes": {
+                  Row: {
+                    "code": string,"course_id": string,"created_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code": string,"course_id": string,"created_at"?: string
+                  }
+                  Update: {
+                    "code"?: string,"course_id"?: string,"created_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_join_codes_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: true
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"course_library": {
                   Row: {
                     "course_id": string,"item_id": string,"position": number,"section": Database["public"]['Enums']["library_section"]
                   }
@@ -29,6 +89,32 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "items"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"course_members": {
+                  Row: {
+                    "course_id": string,"joined_at": string,"role": Database["public"]['Enums']["course_role"],"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "course_id": string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id": string
+                  }
+                  Update: {
+                    "course_id"?: string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "course_members_course_id_fkey"
+      columns: ["course_id"]
+isOneToOne: false
+      referencedRelation: "courses"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "course_members_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["user_id"]
     }
                   ]
                 },"course_modules": {
@@ -325,93 +411,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"case_request_files": {
-                  Row: {
-                    "created_at": string,"file_name": string,"file_path": string,"id": string,"kind": Database["public"]['Enums']["case_request_file_kind"],"note": string | null,"request_id": string,"size_bytes": number
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"file_name": string,"file_path": string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id": string,"size_bytes": number
-                  }
-                  Update: {
-                    "created_at"?: string,"file_name"?: string,"file_path"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_file_kind"],"note"?: string | null,"request_id"?: string,"size_bytes"?: number
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "case_request_files_request_id_fkey"
-      columns: ["request_id"]
-isOneToOne: false
-      referencedRelation: "case_requests"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"case_requests": {
-                  Row: {
-                    "admin_notes": string | null,"brief_md": string,"created_at": string,"id": string,"params": NonNullable<Json>,"requester_id": string,"status": Database["public"]['Enums']["case_request_status"],"submitted_at": string | null,"title": string,"updated_at": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id": string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title": string,"updated_at"?: string
-                  }
-                  Update: {
-                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title"?: string,"updated_at"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "case_requests_requester_id_fkey"
-      columns: ["requester_id"]
-isOneToOne: false
-      referencedRelation: "profiles"
-      referencedColumns: ["user_id"]
-    }
-                  ]
-                },"course_join_codes": {
-                  Row: {
-                    "code": string,"course_id": string,"created_at": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "code": string,"course_id": string,"created_at"?: string
-                  }
-                  Update: {
-                    "code"?: string,"course_id"?: string,"created_at"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "course_join_codes_course_id_fkey"
-      columns: ["course_id"]
-isOneToOne: true
-      referencedRelation: "courses"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"course_members": {
-                  Row: {
-                    "course_id": string,"joined_at": string,"role": Database["public"]['Enums']["course_role"],"user_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "course_id": string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id": string
-                  }
-                  Update: {
-                    "course_id"?: string,"joined_at"?: string,"role"?: Database["public"]['Enums']["course_role"],"user_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "course_members_course_id_fkey"
-      columns: ["course_id"]
-isOneToOne: false
-      referencedRelation: "courses"
-      referencedColumns: ["id"]
-    },
-                    {
-      foreignKeyName: "course_members_user_id_fkey"
-      columns: ["user_id"]
-isOneToOne: false
-      referencedRelation: "profiles"
-      referencedColumns: ["user_id"]
-    }
-                  ]
                 },"video_watch_events": {
                   Row: {
                     "duration_seconds": number,"id": string,"intervals": NonNullable<Json>,"item_id": string,"recorded_at": string,"session_id": string,"user_id": string
@@ -487,26 +486,26 @@ isOneToOne: false
             "create_section_from_template":
 { Args: { "p_template_slug": string,"p_title": string }; Returns: string
                            },
-"move_course_module":
-{ Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
-                           },
-"move_course_unit":
-{ Args: { "p_unit_id": string,"p_direction": number }; Returns: undefined
-                           },
-"move_course_module_across_units":
-{ Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
-                           },
 "delete_empty_course_unit":
 { Args: { "p_unit_id": string }; Returns: undefined
-                           },
-"new_join_code":
-{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
 "is_course_instructor":
 { Args: { "p_course_id": string }; Returns: boolean
+                           },
+"move_course_module":
+{ Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
+                           },
+"move_course_module_across_units":
+{ Args: { "p_course_module_id": string,"p_direction": number }; Returns: undefined
+                           },
+"move_course_unit":
+{ Args: { "p_direction": number,"p_unit_id": string }; Returns: undefined
+                           },
+"new_join_code":
+{ Args: Record<PropertyKey, never>; Returns: string
                            }
           }
           Enums: {
@@ -626,7 +625,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"case_request_file_kind": ["data", "map", "example_case", "other"],"case_request_status": ["draft", "submitted", "in_progress", "delivered", "declined"],"course_kind": ["template", "section"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
+            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"case_request_file_kind": ["data", "map", "example_case", "other"],"case_request_status": ["draft", "submitted", "in_progress", "delivered", "declined"],"course_kind": ["template", "section"],"course_role": ["student", "instructor"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
           }
         }
 } as const

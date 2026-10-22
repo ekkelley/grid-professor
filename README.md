@@ -24,7 +24,7 @@ Next.js 16 (App Router, Cache Components), TypeScript, Tailwind v4, Supabase (Po
 
 Supabase Auth: a one-time email code (Resend SMTP), plus Google and Microsoft when
 `NEXT_PUBLIC_AUTH_PROVIDERS` lists them and the provider is configured in Supabase.
-Roles come from `profiles`, seeded from `role_grants` on first sign-in.
+Roles come from `profiles`, seeded from `role_grants` on first sign-in and changed afterwards at `/admin/users`.
 
 ## Database
 
@@ -53,3 +53,4 @@ Roles come from `profiles`, seeded from `role_grants` on first sign-in.
 | `/cases` | Instructor: their competition-case requests (admins see all) |
 | `/cases/new`, `/cases/[id]/edit` | The request form: seed (story, data, map, rules, example case), dials, and the level chain |
 | `/cases/[id]` | The brief, attachments, thread and status; deliverables once built. Admin: builder's notes, build package (`/cases/[id]/package`, a zip), deliverables upload, status with assignment link. `/cases/[id]/brief` downloads the brief as Markdown |
+| `/admin/users` | Admin: every account with its role; add an account ahead of first sign-in; move anyone between student, instructor and admin (never yourself) |

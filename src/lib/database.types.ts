@@ -337,14 +337,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"email": string,"role": Database["public"]['Enums']["user_role"],"user_id": string
+                    "created_at": string,"email": string,"name": string | null,"role": Database["public"]['Enums']["user_role"],"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"role"?: Database["public"]['Enums']["user_role"],"user_id": string
+                    "created_at"?: string,"email": string,"name"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"role"?: Database["public"]['Enums']["user_role"],"user_id"?: string
+                    "created_at"?: string,"email"?: string,"name"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"user_id"?: string
                   }
                   Relationships: [
                     

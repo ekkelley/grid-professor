@@ -233,6 +233,24 @@ async function HomeContent() {
         </section>
       )}
 
+      {viewer.role === "admin" && (
+        <section aria-labelledby="accounts-heading">
+          <Card className="flex flex-wrap items-center gap-5 p-5">
+            <div className="min-w-0 flex-1 basis-56">
+              <h2 id="accounts-heading" className="font-semibold">
+                Accounts
+              </h2>
+              <p className="mt-0.5 text-sm text-muted">
+                Everyone with an account and what they can do. Add someone ahead of their first sign-in, or make them an instructor or admin.
+              </p>
+            </div>
+            <ButtonLink href="/admin/users" variant="secondary">
+              Manage accounts
+            </ButtonLink>
+          </Card>
+        </section>
+      )}
+
       {others.length > 0 && (
         <section aria-labelledby="others-heading">
           <h2 id="others-heading" className="text-lg font-semibold">

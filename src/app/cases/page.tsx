@@ -12,7 +12,7 @@ export const metadata = { title: "Case requests" };
 const textButton = "rounded-lg border border-line bg-card px-3 py-1.5 text-sm font-medium hover:bg-bg";
 
 function tone(status: CaseRequestStatus): "neutral" | "green" | "note" {
-  if (status === "delivered") return "green";
+  if (status === "delivered" || status === "deployed") return "green";
   if (status === "submitted" || status === "in_progress") return "note";
   return "neutral";
 }
@@ -33,7 +33,7 @@ function shapeLabel(r: CaseRequest): string {
 /** One request in the list; admins get the next pipeline step as a button. */
 function RequestRow({ r, admin }: { r: CaseRequest; admin: boolean }) {
   const next: { status: CaseRequestStatus; label: string } | null =
-    r.status === "submitted" ? { status: "in_progress", label: "Start building" } : r.status === "in_progress" ? { status: "delivered", label: "Mark delivered" } : null;
+    r.status === "submitted" ? { status: "in_progress", label: "Start building" } : r.status === "in_progress" && r.deliverables.length > 0 ? { status: "delivered", label: "Mark delivered" } : null;
   return (
     <Card className="flex flex-wrap items-center gap-4 p-5">
       <div className="min-w-0 flex-1 basis-64">
@@ -46,6 +46,7 @@ function RequestRow({ r, admin }: { r: CaseRequest; admin: boolean }) {
         <p className="mt-0.5 text-sm text-muted">
           {shapeLabel(r)} {chainSummary(r.params.levels)}
           {r.files.length > 0 && ` ${r.files.length} file${r.files.length === 1 ? "" : "s"} attached.`}
+          {r.deliverables.length > 0 && ` ${r.deliverables.length} deliverable${r.deliverables.length === 1 ? "" : "s"}.`}
           {admin && r.requesterEmail && ` Requested by ${r.requesterEmail}.`}
           {r.submitted_at && ` Submitted ${r.submitted_at.slice(0, 10)}.`}
         </p>
@@ -71,9 +72,10 @@ function RequestRow({ r, admin }: { r: CaseRequest; admin: boolean }) {
 /** The admin's queue: submitted first, then in progress, drafts, and the closed ones. */
 const QUEUE: { status: CaseRequestStatus; title: string; blurb: string }[] = [
   { status: "submitted", title: "Waiting to be built", blurb: "Download the brief and its files into case-builder/cases/<case>/, then start building." },
-  { status: "in_progress", title: "Being built", blurb: "Mark delivered when the Solution, Blank and Answer Key are in the case folder, and say where in the notes." },
+  { status: "in_progress", title: "Being built", blurb: "Upload the Solution, Blank and Answer Key on the request, then mark it delivered." },
+  { status: "delivered", title: "Delivered, not yet deployed", blurb: "After the tester pass, register the case in the add-in and mark it deployed with the assignment link." },
   { status: "draft", title: "Drafts", blurb: "Not submitted yet; the requester is still working on them." },
-  { status: "delivered", title: "Delivered", blurb: "" },
+  { status: "deployed", title: "Deployed", blurb: "" },
   { status: "declined", title: "Declined", blurb: "" },
 ];
 

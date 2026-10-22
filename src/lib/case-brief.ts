@@ -424,7 +424,7 @@ export function statedFields(p: CaseBriefParams): string[] {
 }
 
 export type BriefAttachment = { kind: string; fileName: string; note: string | null };
-export type BriefMeta = { requesterEmail: string; requestedOn: string; status: string; requestId: string };
+export type BriefMeta = { requesterEmail: string; requestedOn: string; status: string; requestId: string; builderNotes?: string | null };
 
 export function optionLabel<T extends string>(options: readonly Option<T>[], value: string): string {
   return options.find((o) => o.value === value)?.label ?? value;
@@ -496,6 +496,9 @@ export function renderBrief(p: CaseBriefParams, meta: BriefMeta, files: BriefAtt
   push(`# Case brief: ${titleFor(p)}`, "");
   push(`Requested by ${meta.requesterEmail} on ${meta.requestedOn} through Grid Professor (request ${meta.requestId}). Status: ${meta.status}.`, "");
   push(`Stated by the requester: ${stated.length ? stated.join(", ") : "nothing yet"}. Everything else is marked "derive": the builder's call, and the design table must say what was decided and why.`, "");
+  if (meta.builderNotes?.trim()) {
+    push("## Builder's notes", "", "Added by the admin after reviewing the request. These guide the build and take precedence over a derived default, never over something the requester stated.", "", meta.builderNotes.trim(), "");
+  }
 
   push("## Identity", "");
   push(`- Working title: ${p.title.trim() || "derive"}`);

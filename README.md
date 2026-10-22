@@ -52,4 +52,4 @@ Roles come from `profiles`, seeded from `role_grants` on first sign-in.
 | `/courses/[slug]/edit` | Instructor: reorder, hide and date modules in their own copy |
 | `/cases` | Instructor: their competition-case requests (admins see all) |
 | `/cases/new`, `/cases/[id]/edit` | The request form: seed (story, data, map, rules, example case), dials, and the level chain |
-| `/cases/[id]` | The generated case brief, attachments, submit; admin status and notes. `/cases/[id]/brief` downloads the brief as Markdown |
+| `/cases/[id]` | The brief, attachments, thread and status; deliverables once built. Admin: builder's notes, build package (`/cases/[id]/package`, a zip), deliverables upload, status with assignment link. `/cases/[id]/brief` downloads the brief as Markdown |

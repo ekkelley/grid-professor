@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "case_request_files": {
+            "case_request_events": {
+                  Row: {
+                    "author_id": string | null,"body": string,"created_at": string,"id": string,"kind": Database["public"]['Enums']["case_request_event_kind"],"request_id": string,"status": Database["public"]['Enums']["case_request_status"] | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_id"?: string | null,"body": string,"created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_event_kind"],"request_id": string,"status"?: Database["public"]['Enums']["case_request_status"] | null
+                  }
+                  Update: {
+                    "author_id"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["case_request_event_kind"],"request_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"] | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "case_request_events_author_id_fkey"
+      columns: ["author_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["user_id"]
+    },{
+      foreignKeyName: "case_request_events_request_id_fkey"
+      columns: ["request_id"]
+isOneToOne: false
+      referencedRelation: "case_requests"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"case_request_files": {
                   Row: {
                     "created_at": string,"file_name": string,"file_path": string,"id": string,"kind": Database["public"]['Enums']["case_request_file_kind"],"note": string | null,"request_id": string,"size_bytes": number
                   }
@@ -27,14 +53,14 @@ isOneToOne: false
                   ]
                 },"case_requests": {
                   Row: {
-                    "admin_notes": string | null,"brief_md": string,"created_at": string,"id": string,"params": NonNullable<Json>,"requester_id": string,"status": Database["public"]['Enums']["case_request_status"],"submitted_at": string | null,"title": string,"updated_at": string
+                    "admin_notes": string | null,"assignment_link": string | null,"brief_md": string,"builder_notes": string | null,"created_at": string,"delivered_at": string | null,"deployed_at": string | null,"id": string,"params": NonNullable<Json>,"requester_id": string,"status": Database["public"]['Enums']["case_request_status"],"submitted_at": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id": string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title": string,"updated_at"?: string
+                    "admin_notes"?: string | null,"assignment_link"?: string | null,"brief_md"?: string,"builder_notes"?: string | null,"created_at"?: string,"delivered_at"?: string | null,"deployed_at"?: string | null,"id"?: string,"params"?: NonNullable<Json>,"requester_id": string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "admin_notes"?: string | null,"brief_md"?: string,"created_at"?: string,"id"?: string,"params"?: NonNullable<Json>,"requester_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title"?: string,"updated_at"?: string
+                    "admin_notes"?: string | null,"assignment_link"?: string | null,"brief_md"?: string,"builder_notes"?: string | null,"created_at"?: string,"delivered_at"?: string | null,"deployed_at"?: string | null,"id"?: string,"params"?: NonNullable<Json>,"requester_id"?: string,"status"?: Database["public"]['Enums']["case_request_status"],"submitted_at"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -509,7 +535,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","case_request_file_kind": "data"|"map"|"example_case"|"other","case_request_status": "draft"|"submitted"|"in_progress"|"delivered"|"declined","course_kind": "template"|"section","course_role": "student"|"instructor","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
+            "build_status": "current"|"retired","build_variant": "training"|"competition"|"single","case_request_event_kind": "message"|"status","case_request_file_kind": "data"|"map"|"example_case"|"other"|"deliverable","case_request_status": "draft"|"submitted"|"in_progress"|"delivered"|"declined"|"deployed","course_kind": "template"|"section","course_role": "student"|"instructor","item_audience": "student"|"instructor","item_kind": "video"|"read"|"workbook"|"guide"|"file","item_origin": "primitive"|"derived","item_status": "active"|"retired","library_section": "explainer"|"function_guide"|"practice"|"game","owner_type": "person"|"brand"|"not_established","release_rule": "immediate"|"after_due"|"after_unlock"|"after_run","skill_type": "function"|"technique","tag_basis": "declared"|"observed"|"claimed","user_role": "student"|"instructor"|"admin"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -625,7 +651,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"case_request_file_kind": ["data", "map", "example_case", "other"],"case_request_status": ["draft", "submitted", "in_progress", "delivered", "declined"],"course_kind": ["template", "section"],"course_role": ["student", "instructor"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
+            "build_status": ["current", "retired"],"build_variant": ["training", "competition", "single"],"case_request_event_kind": ["message", "status"],"case_request_file_kind": ["data", "map", "example_case", "other", "deliverable"],"case_request_status": ["draft", "submitted", "in_progress", "delivered", "declined", "deployed"],"course_kind": ["template", "section"],"course_role": ["student", "instructor"],"item_audience": ["student", "instructor"],"item_kind": ["video", "read", "workbook", "guide", "file"],"item_origin": ["primitive", "derived"],"item_status": ["active", "retired"],"library_section": ["explainer", "function_guide", "practice", "game"],"owner_type": ["person", "brand", "not_established"],"release_rule": ["immediate", "after_due", "after_unlock", "after_run"],"skill_type": ["function", "technique"],"tag_basis": ["declared", "observed", "claimed"],"user_role": ["student", "instructor", "admin"]
           }
         }
 } as const

@@ -53,4 +53,4 @@ Roles come from `profiles`, seeded from `role_grants` on first sign-in and chang
 | `/cases` | Instructor: their competition-case requests (admins see all) |
 | `/cases/new`, `/cases/[id]/edit` | The request form: seed (story, data, map, rules, example case), dials, and the level chain |
 | `/cases/[id]` | The brief, attachments, thread and status; deliverables once built. Admin: builder's notes, build package (`/cases/[id]/package`, a zip), deliverables upload, status with assignment link. `/cases/[id]/brief` downloads the brief as Markdown |
-| `/admin/users` | Admin: every account with its role; add an account ahead of first sign-in; move anyone between student, instructor and admin (never yourself) |
+| `/admin/users` | Admin: everyone with their role, accounts and not-yet-signed-in grants in one list; add an address with a role (a `role_grants` row, applied at first sign-in); move anyone between student, instructor and admin (never yourself, never the last admin) |

@@ -351,14 +351,14 @@ isOneToOne: false
                   ]
                 },"role_grants": {
                   Row: {
-                    "email": string,"note": string | null,"role": Database["public"]['Enums']["user_role"]
+                    "email": string,"name": string | null,"note": string | null,"role": Database["public"]['Enums']["user_role"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "email": string,"note"?: string | null,"role": Database["public"]['Enums']["user_role"]
+                    "email": string,"name"?: string | null,"note"?: string | null,"role": Database["public"]['Enums']["user_role"]
                   }
                   Update: {
-                    "email"?: string,"note"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
+                    "email"?: string,"name"?: string | null,"note"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
                   }
                   Relationships: [
                     

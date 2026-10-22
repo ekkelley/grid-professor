@@ -337,28 +337,28 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"email": string,"role": Database["public"]['Enums']["user_role"],"user_id": string
+                    "created_at": string,"email": string,"name": string | null,"role": Database["public"]['Enums']["user_role"],"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"role"?: Database["public"]['Enums']["user_role"],"user_id": string
+                    "created_at"?: string,"email": string,"name"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"role"?: Database["public"]['Enums']["user_role"],"user_id"?: string
+                    "created_at"?: string,"email"?: string,"name"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"user_id"?: string
                   }
                   Relationships: [
                     
                   ]
                 },"role_grants": {
                   Row: {
-                    "email": string,"note": string | null,"role": Database["public"]['Enums']["user_role"]
+                    "email": string,"name": string | null,"note": string | null,"role": Database["public"]['Enums']["user_role"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "email": string,"note"?: string | null,"role": Database["public"]['Enums']["user_role"]
+                    "email": string,"name"?: string | null,"note"?: string | null,"role": Database["public"]['Enums']["user_role"]
                   }
                   Update: {
-                    "email"?: string,"note"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
+                    "email"?: string,"name"?: string | null,"note"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
                   }
                   Relationships: [
                     
